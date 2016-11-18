@@ -21,6 +21,10 @@ public class SimpleKeyPhraseExtractor extends AbstractKeyPhraseExtractor {
 	}
 
 	public static final SimpleKeyPhraseExtractor INSTANCE = new SimpleKeyPhraseExtractor();
+	
+	public static final SimpleKeyPhraseExtractor getInstance() {
+		return INSTANCE;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -32,12 +36,12 @@ public class SimpleKeyPhraseExtractor extends AbstractKeyPhraseExtractor {
 	@Override
 	public List<String> extractKeyPhrases(NewsArticle newsArticle) {
 		String[] words = newsArticle.getNewsBody().split(" ", 0);
-		Map<String, Integer> wordCount = new HashMap<String, Integer>();
+		Map<String, Integer> wordCount = new HashMap<>();
 		for (String word : words) {
 			int val = wordCount.getOrDefault(word, 0);
 			wordCount.put(word, ++val);
 		}
-		Queue<String> countOrder = new PriorityQueue<String>(wordCount.keySet()
+		Queue<String> countOrder = new PriorityQueue<>(wordCount.keySet()
 				.size(), new Comparator<String>() {
 
 			@Override
@@ -53,7 +57,7 @@ public class SimpleKeyPhraseExtractor extends AbstractKeyPhraseExtractor {
 		for (String word : wordCount.keySet()) {
 			countOrder.add(word);
 		}
-		List<String> returnStringList = new ArrayList<String>(
+		List<String> returnStringList = new ArrayList<>(
 				this.keyPhraseCount);
 		for (int i = 0; i < this.keyPhraseCount; i++) {
 			returnStringList.add(countOrder.poll());
