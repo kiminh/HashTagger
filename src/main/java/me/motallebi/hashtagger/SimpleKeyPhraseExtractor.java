@@ -35,7 +35,7 @@ public class SimpleKeyPhraseExtractor extends AbstractKeyPhraseExtractor {
 	 */
 	@Override
 	public List<String> extractKeyPhrases(NewsArticle newsArticle) {
-		String[] words = newsArticle.getNewsBody().split(" ", 0);
+		String[] words = newsArticle.getBody().split(" ", 0);
 		Map<String, Integer> wordCount = new HashMap<>();
 		for (String word : words) {
 			int val = wordCount.getOrDefault(word, 0);

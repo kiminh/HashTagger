@@ -11,14 +11,32 @@ public class SimpleNewsArticle implements NewsArticle {
 
 	protected String newsTitle;
 	protected String newsBody;
+	protected int id;
 
+	/* (non-Javadoc)
+	 * @see me.motallebi.hashtagger.NewsArticle#setId(int)
+	 */
+	@Override
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	/* (non-Javadoc)
+	 * @see me.motallebi.hashtagger.NewsArticle#getId()
+	 */
+	@Override
+	public int getId() {
+		return this.id;
+	}
+
+	
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see me.motallebi.hashtagger.NewsArticleInterface#getNewsBody()
 	 */
 	@Override
-	public String getNewsBody() {
+	public String getBody() {
 		return this.newsBody;
 	}
 
@@ -28,19 +46,19 @@ public class SimpleNewsArticle implements NewsArticle {
 	 * @see me.motallebi.hashtagger.NewsArticleInterface#getNewsTitle()
 	 */
 	@Override
-	public String getNewsTitle() {
+	public String getTitle() {
 		return this.newsTitle;
 	}
 
 	@Override
-	public void setNewsTitle(String newsTitle) {
+	public void setTitle(String newsTitle) {
 		// Check encoding etc. when setting
 		this.newsTitle = newsTitle;
 
 	}
 
 	@Override
-	public void setNewsBody(String newsBody) {
+	public void setBody(String newsBody) {
 		// Check encoding etc. when setting
 		this.newsBody = newsBody;
 
@@ -63,5 +81,6 @@ public class SimpleNewsArticle implements NewsArticle {
 	public String toString() {
 		return this.newsTitle + " : " + this.newsBody;
 	}
+
 
 }

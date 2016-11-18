@@ -8,25 +8,36 @@ package me.motallebi.hashtagger;
  *
  */
 public interface NewsArticle {
+	
+	/**
+	 * Assume ID is an int
+	 * @param id
+	 */
+	public void setId(int id);
+	
+	/**
+	 * @return Id
+	 */
+	public int getId();
 
 	/**
 	 * @param newsTitle
 	 */
-	public void setNewsTitle(String newsTitle);
+	public void setTitle(String newsTitle);
 
 	/**
 	 * @param newsBody
 	 */
-	public void setNewsBody(String newsBody);
+	public void setBody(String newsBody);
 
 	/**
 	 * @return
 	 */
-	public String getNewsBody();
+	public String getBody();
 
 	/**
 	 * @return
 	 */
-	public String getNewsTitle();
+	public String getTitle();
 
 }
