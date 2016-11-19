@@ -1,0 +1,3 @@
+news.url.pattern=http://www.google.com
+news.range.start=0
+news.range.end=90000
