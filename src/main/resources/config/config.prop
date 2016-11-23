@@ -1,3 +1,7 @@
-news.url.pattern=http://www.google.com
-news.range.start=0
-news.range.end=90000
+news.url.pattern=http://insight4news.ucd.ie/article_detail/%d
+news.range.start=1
+news.range.end=10
+news.save.location=download
+news.file.regex=.*<header class=\\"page-header\\">(.+)</header>.+<article class=\\"text-left\\">(.+)</article>.*
+news.title.group=1
+news.body.group=2
