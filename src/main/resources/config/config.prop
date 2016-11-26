@@ -5,3 +5,6 @@ news.save.location=download
 news.file.regex=.*<header class=\\"page-header\\">(.+)</header>.+<article class=\\"text-left\\">(.+)</article>.*
 news.title.group=1
 news.body.group=2
+tweet.save.location=tweets
+tweet.range.start=1
+tweet.range.end=1000
