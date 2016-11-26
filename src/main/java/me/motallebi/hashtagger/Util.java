@@ -8,10 +8,17 @@ import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 
 /**
  * Utility class
@@ -32,7 +39,7 @@ public class Util {
 	public static BufferedReader getBufferedReaderForCompressedFile(
 			File fileIn, Charset charset) throws FileNotFoundException,
 			CompressorException {
-		if (charset == null)
+		if (null == charset)
 			charset = StandardCharsets.US_ASCII;
 		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(
 				fileIn));
@@ -40,5 +47,23 @@ public class Util {
 				.createCompressorInputStream(bis);
 		return new BufferedReader(new InputStreamReader(
 				decompressedInputStream, charset));
+	}
+
+	public static final List<String> FREQUENT_WORD_SET = Arrays.asList("a",
+			"the", "i", "me", "my", "he", "she", "his", "her", "here", "there");
+
+	/**
+	 * Split the text using space. Then remove the FREQUENT_WORD_SET from it.
+	 * @param text
+	 * @return array of unique words
+	 */
+	public static String[] getMainWords(String text) {
+		if (null == text)
+			return new String[0];
+		text = text.toLowerCase();
+		String[] words = text.split(" ");
+		Set<String> wordSet = new HashSet<>(Arrays.asList(words));
+		wordSet.removeAll(FREQUENT_WORD_SET);
+		return wordSet.toArray(new String[wordSet.size()]);
 	}
 }

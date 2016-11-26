@@ -168,6 +168,14 @@ public class FileTweetSource implements TweetSource {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	/**
+	 * To be replaced with getStream()
+	 * @return computed Tweet list
+	 */
+	public List<Status> getTweetList(){
+		return this.tweetList;
+	}
 
 	/**
 	 * Method to notify that the data has loaded.
@@ -182,10 +190,4 @@ public class FileTweetSource implements TweetSource {
 		}
 	}
 
-	public static void main(String[] args) {
-		FileTweetSource fts = new FileTweetSource();
-
-		fts.loadTweets();
-
-	}
 }

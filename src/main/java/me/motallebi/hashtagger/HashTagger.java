@@ -3,6 +3,8 @@
  */
 package me.motallebi.hashtagger;
 
+import twitter4j.Status;
+
 /**
  * Program entry point. Main class.
  * 
@@ -17,8 +19,15 @@ public class HashTagger {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		FileTweetSource fts = new FileTweetSource();
 
+		fts.loadTweets();
+		
+		HashtagFinder hashtagFinder = new SimpleHashtagFinder(fts.getTweetList());
+		
+		Status[] result = hashtagFinder.getStatusWithHT("cnn");
+		for (Status s : result)
+			System.out.println(s.getText());
 	}
 
 
