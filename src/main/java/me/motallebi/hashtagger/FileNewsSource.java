@@ -11,6 +11,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -25,25 +26,26 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * @author mrmotallebi
  * 
- * Should be very buggy. Especially the synchronization part.
- * Needs a lot of refactoring.
+ * Should be very buggy. Especially the synchronization part. Needs a lot of
+ * refactoring.
+ * 
+ * @author mrmotallebi
  *
  */
-public class FileNewsLoader implements NewsLoader {
+public class FileNewsSource implements NewsSource {
 
 	private String filePath = Constants.NEWS_SAVE_LOCATION;
 	private boolean download = false;
 	private int numToLoad = Constants.NEWS_RANGE_END
 			- Constants.NEWS_RANGE_START + 1;
 	private List<NewsArticle> newsList = new ArrayList<>(this.numToLoad);
-	private volatile boolean isLoaded = false;
+	private volatile boolean loaded = false;
 
 	/**
 	 * Create new FileNewsLoader object
 	 */
-	public FileNewsLoader() {
+	public FileNewsSource() {
 	}
 
 	/**
@@ -52,7 +54,7 @@ public class FileNewsLoader implements NewsLoader {
 	 * @param filePath
 	 *            Location to store or look for news files
 	 */
-	public FileNewsLoader(String filePath) {
+	public FileNewsSource(String filePath) {
 		if (filePath == null || filePath.isEmpty()) {
 			// throw new IllegalArgumentException("File path invalid.");
 			this.filePath = Constants.NEWS_SAVE_LOCATION;
@@ -69,7 +71,7 @@ public class FileNewsLoader implements NewsLoader {
 	 * @param download
 	 *            To download or look for files on disk
 	 */
-	public FileNewsLoader(String filePath, boolean download) {
+	public FileNewsSource(String filePath, boolean download) {
 		this(filePath);
 		this.download = download;
 	}
@@ -81,7 +83,7 @@ public class FileNewsLoader implements NewsLoader {
 	 */
 	@Override
 	public synchronized void loadNews() {
-		this.isLoaded = false;
+		this.loaded = false;
 		if (this.download) {
 			downloadNews();
 		}
@@ -99,18 +101,23 @@ public class FileNewsLoader implements NewsLoader {
 			}
 		});
 
+		if (files == null)
+			throw new UncheckedIOException(new IOException(
+					"Path does not exist"));
+
 		for (File f : files) {
 			NewsArticle news = parseNewsfile(f, pattern);
 			if (news == null)
 				continue;
 			this.newsList.add(news);
 		}
-		this.isLoaded = true;
+		this.loaded = true;
 		notifyAll();
 	}
 
 	/**
-	 * Just a helper method. Replace it with xml/html parser or DOM
+	 * Just a helper method. Replace it with xml/html parser or DOM. Consider
+	 * making a new class for it to remove unnecessary parts and normalize news.
 	 * 
 	 * @param f
 	 * @param pattern
@@ -118,7 +125,7 @@ public class FileNewsLoader implements NewsLoader {
 	 */
 	private static NewsArticle parseNewsfile(File f, Pattern pattern) {
 		Matcher matcher;
-		try{
+		try {
 			matcher = pattern
 					.matcher(new String(Files.readAllBytes(f.toPath())));
 		} catch (IOException e) {
@@ -126,7 +133,7 @@ public class FileNewsLoader implements NewsLoader {
 			e.printStackTrace();
 			return null;
 		}
-		if(!matcher.matches())
+		if (!matcher.matches())
 			return null;
 		NewsArticle news = new SimpleNewsArticle();
 		news.setTitle(matcher.group(Constants.NEWS_TITLE_GROUP));
@@ -227,7 +234,8 @@ public class FileNewsLoader implements NewsLoader {
 					* 500 / Constants.CONCURRENT_DOWNLOADS + 5000,
 					TimeUnit.MILLISECONDS);
 			if (!successful)
-				throw new InterruptedException("Not all files were downloaded. ");
+				throw new InterruptedException(
+						"Not all files were downloaded. ");
 		} catch (InterruptedException e) {
 			// Don't mind if all files weren't downloaded
 			System.err.println(e.getMessage());
@@ -235,13 +243,17 @@ public class FileNewsLoader implements NewsLoader {
 		}
 
 	}
-	
-	public synchronized void waitUntilLoad(){
-		while(!this.isLoaded){
+
+	/**
+	 * Method to notify that the data has loaded.
+	 */
+	public synchronized void waitUntilLoad() {
+		while (!this.loaded) {
 			System.out.println("Waiting for news to load");
 			try {
 				wait();
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException e) {
+			}
 		}
 	}
 
@@ -309,21 +321,21 @@ public class FileNewsLoader implements NewsLoader {
 
 	public static void main(String[] args) {
 
-		FileNewsLoader fnl = new FileNewsLoader(null, true);
+		FileNewsSource fnl = new FileNewsSource(null, true);
 
 		new Thread() {
-		public void run() {
-			fnl.waitUntilLoad();
-			for(NewsArticle na : fnl){
-				System.out.println(na.getTitle());
-			}
-		};	
+			public void run() {
+				fnl.waitUntilLoad();
+				for (NewsArticle na : fnl) {
+					System.out.println(na.getTitle());
+				}
+			};
 		}.start();
 		try {
 			Thread.sleep(1000l);
-		} catch (InterruptedException e) {}
-		
-		fnl.loadNews();
+			fnl.loadNews();
+		} catch (InterruptedException e) {
+		}
 
 	}
 

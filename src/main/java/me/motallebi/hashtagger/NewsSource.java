@@ -10,7 +10,7 @@ import java.util.Date;
  * @author mrmotallebi
  *
  */
-public interface NewsLoader extends Iterable<NewsArticle> {
+public interface NewsSource extends Iterable<NewsArticle> {
 
 	public void loadNews();
 
