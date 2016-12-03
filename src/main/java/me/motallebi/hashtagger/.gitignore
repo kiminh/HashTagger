@@ -1,0 +1,17 @@
+/AbstractKeyPhraseExtractor.class
+/Constants.class
+/FeatureComputer.class
+/FileNewsLoader.class
+/HashTagger.class
+/KeyPhraseExtractor.class
+/NewsArticle.class
+/NewsLoader.class
+/SimpleKeyPhraseExtractor$1.class
+/SimpleKeyPhraseExtractor.class
+/SimpleNewsArticle.class
+/SimpleFeatureComputer.class
+/Hashtag.class
+/Tweet.class
+/TestIrisAccuracy.class
+/PredictiveAccuracyTests.class
+/CSVWriter.class
