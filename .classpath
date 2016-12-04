@@ -6,6 +6,5 @@
 	<classpathentry kind="lib" path="lib/commons-lang3-3.5.jar"/>
 	<classpathentry kind="lib" path="lib/quickml-0.8.0-javadoc.jar"/>
 	<classpathentry kind="lib" path="lib/quickml-0.8.0.jar"/>
-	<classpathentry kind="lib" path="extraClasses"/>
-	<classpathentry kind="output" path="src/main/java"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
