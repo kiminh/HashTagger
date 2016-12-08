@@ -19,7 +19,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 
 	/**
 	 * 
-	 */
+
 	
 	// to be used in tf calculation
 	private Float maxFreq = (float) 0.0;
@@ -32,6 +32,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	 * TODO2: Need to calc max and min article specific tweet bag size for feature 2
 	 * TODO3: the same as previous one, for general tweets, feature 4
 	 * */
+	private List<Float> featureList;
 	public SimpleFeatureComputer() {
 		// TODO Auto-generated constructor stub
 		maxFreq = calcMaxFreq();
@@ -240,5 +241,9 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	public List<Float> computeFeatures() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public List<Float> getFeaturesList() {
+		return this.featureList;
 	}
 }

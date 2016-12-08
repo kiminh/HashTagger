@@ -10,7 +10,7 @@ import java.util.Date;
  * @author mrmotallebi
  *
  */
-public interface NewsLoader {
+public interface NewsSource extends Iterable<NewsArticle> {
 
 	public void loadNews();
 
@@ -21,7 +21,5 @@ public interface NewsLoader {
 	public void loadNews(Date date, Integer count);
 
 	public OutputStream getStream();
-
-	public NewsArticle getNextNews();
 
 }
