@@ -10,9 +10,12 @@ import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+
+
 
 
 
@@ -116,14 +119,19 @@ public class HashTagger {
 			NewsArticle na = itNA.next();
 			System.out.println("Start of news article: " + na.getId());
 			//3.1 find keyphrases of article with method 1
-			SimpleKeyPhraseExtractor skpe = SimpleKeyPhraseExtractor.getInstance();
-			List<String> keyPhrases = skpe.extractKeyPhrases(na);
+			//SimpleKeyPhraseExtractor skpe = SimpleKeyPhraseExtractor.getInstance();
+			//List<String> keyPhrases = skpe.extractKeyPhrases(na);
 			List<HashtagEntity> hashtags = new ArrayList<HashtagEntity>();
+			
+			List<String> keyPhrases = PredefinedKeyPhraseExtractor.getInstance().extractKeyPhrase(na);
+			
 			//3.2 find tweets and hashtags of keyphrases
 			for(String str: keyPhrases){
 				str = str.replaceAll("<.*?>", "");
-				Status[] result = hashtagFinder.getStatusWithHT(str);
-				for (Status s : result){
+				ArrayList<Status> result1 = (ArrayList<Status>) Arrays.asList(hashtagFinder.getStatusWithWord(str.split(" ")[0]));
+				ArrayList<Status> result2 = (ArrayList<Status>) Arrays.asList(hashtagFinder.getStatusWithWord(str.split(" ")[1]));
+				result1.retainAll(result2);
+				for (Status s : result1){
 					for (HashtagEntity he:s.getHashtagEntities()){
 						hashtags.add(he);
 					}
@@ -136,7 +144,7 @@ public class HashTagger {
 			//3.3 Now, for each hashtag, compute feature vector
 			List<List<Float>> allFeatures = new ArrayList<List<Float>>();
 			for(HashtagEntity h:hashtags){
-				SimpleFeatureComputer sfc = new SimpleFeatureComputer();
+				SimpleFeatureComputer sfc = new SimpleFeatureComputer(na,fts,fns, hashtagFinder);
 				List<Float> featuresValues = sfc.getFeaturesList();
 				allFeatures.add(featuresValues);
 				
