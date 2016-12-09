@@ -5,7 +5,6 @@
 	<classpathentry kind="lib" path="lib/commons-lang3-3.5.jar"/>
 	<classpathentry kind="lib" path="lib/quickml-0.8.0-javadoc.jar"/>
 	<classpathentry kind="lib" path="lib/quickml-0.8.0.jar"/>
-	<classpathentry kind="lib" path="extraClasses"/>
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="lib" path="lib/commons-compress-1.12.jar"/>
 	<classpathentry kind="lib" path="lib/twitter4j-core-4.0.4.jar"/>
