@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.apache.commons.compress.compressors.CompressorException;
 
+import twitter4j.HashtagEntity;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 import twitter4j.TwitterObjectFactory;
@@ -188,6 +189,26 @@ public class FileTweetSource implements TweetSource {
 			} catch (InterruptedException e) {
 			}
 		}
+	}
+	
+	public static void main(String[] args) {
+		FileTweetSource fts = new FileTweetSource();
+		fts.loadTweets();
+		fts.waitUntilLoad();
+		for(Status s : fts){
+			HashtagEntity[] hes = s.getHashtagEntities();
+			for (HashtagEntity he : hes){
+				System.out.print("#" + he.getText() + " ");
+			}
+			if(hes.length > 0)
+				System.out.println();
+		}
+		
+		HashtagFinder hf = new SimpleHashtagFinder(fts.tweetList);
+		System.out.println(hf.getStatusWithHT("travel").length);
+		System.out.println("Max tweets for hashtag : " + hf.getMaxTweetsForHashtags());
+		System.out.println("Min tweets for hashtag : " + hf.getMinTweetsForHashtags());
+		System.out.println("\"#travel\" was mentioned in this many tweets: " + hf.getTweetCountForHashtag("travel"));
 	}
 
 }

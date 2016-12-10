@@ -16,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -96,8 +97,7 @@ public class FileNewsSource implements NewsSource {
 				if (name == null)
 					return false;
 				// TODO: something about this...
-				return (name.startsWith("news-")
-						&& (name.endsWith(".html")) || name.endsWith(".htm"));
+				return name.endsWith(".html") || name.endsWith(".htm");
 			}
 		});
 
@@ -124,6 +124,9 @@ public class FileNewsSource implements NewsSource {
 	 * @return
 	 */
 	private static NewsArticle parseNewsfile(File f, Pattern pattern) {
+		if(pattern == null){
+			pattern = Pattern.compile(Constants.NEWS_FILE_REGEX);
+		}
 		Matcher matcher;
 		try {
 			matcher = pattern
@@ -321,7 +324,7 @@ public class FileNewsSource implements NewsSource {
 
 	public static void main(String[] args) {
 
-		FileNewsSource fnl = new FileNewsSource(null, true);
+		FileNewsSource fnl = new FileNewsSource(null, false);
 
 		new Thread() {
 			public void run() {
@@ -335,6 +338,12 @@ public class FileNewsSource implements NewsSource {
 			Thread.sleep(1000l);
 			fnl.loadNews();
 		} catch (InterruptedException e) {
+		}
+		fnl.waitUntilLoad();
+		PredefinedKeyPhraseExtractor pkpe = PredefinedKeyPhraseExtractor.getInstance();
+		for (NewsArticle news : fnl){
+			List<String>result = pkpe.extractKeyPhrases(news);
+			System.out.println(Arrays.toString( result.toArray() ));
 		}
 
 	}
