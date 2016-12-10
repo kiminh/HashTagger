@@ -103,9 +103,16 @@ public class HashTagger {
 			//3.2 find tweets and hashtags of keyphrases
 			List<HashtagEntity> hashtags = new ArrayList<HashtagEntity>();
 			for(String str: keyPhrases){
+				 //= null, result2 = null;
 				str = str.replaceAll("<.*?>", "");// in early version some of them contained HTML tags inside! had to remove them
-				ArrayList<Status> result1 = (ArrayList<Status>) Arrays.asList(hashtagFinder.getStatusWithWord(str.split(" ")[0]));
-				ArrayList<Status> result2 = (ArrayList<Status>) Arrays.asList(hashtagFinder.getStatusWithWord(str.split(" ")[1]));
+				Status[] temp1 = hashtagFinder.getStatusWithWord(str.split(" ")[0]);
+				Status[] temp2 = hashtagFinder.getStatusWithWord(str.split(" ")[1]);
+				if(temp1 == null || temp2 == null)
+					continue;
+				//List<Status> result1 = new ArrayList<Status>();
+				//result1 = (List<Status>) Arrays.asList(temp1);
+				List<Status> result1 = new ArrayList<>(Arrays.asList(temp1));
+				List<Status> result2 = (List<Status>) Arrays.asList(temp2);
 				result1.retainAll(result2);//get intersection since each keyphase has 2 strings and tweet should contain both of them.
 				for (Status s : result1){
 					hashtags.addAll(Arrays.asList(s.getHashtagEntities()));
@@ -120,6 +127,7 @@ public class HashTagger {
 			List<List<Float>> allFeatures = new ArrayList<List<Float>>();
 			SimpleFeatureComputer sfc = new SimpleFeatureComputer(na,fts,fns, hashtagFinder, hashtags);
 			for(HashtagEntity h:hashtags){
+				sfc.computeFeatures(h);
 				List<Float> featuresValues = sfc.getFeaturesList();
 				allFeatures.add(featuresValues);
 				
