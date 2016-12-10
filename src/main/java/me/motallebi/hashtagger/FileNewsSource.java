@@ -354,13 +354,6 @@ public class FileNewsSource implements NewsSource {
 
 	public static void main(String[] args) {
 
-		/*
-		 * try { SimpleDateFormat df = new SimpleDateFormat();
-		 * df.applyPattern("MMM. dd, yyyy, h:mm a");
-		 * df.parse("Feb. 24, 2016, 9:18 AM"); } catch (ParseException e1) { //
-		 * TODO Auto-generated catch block e1.printStackTrace(); }
-		 */
-
 		FileNewsSource fnl = new FileNewsSource(null, false);
 
 		new Thread() {
@@ -379,9 +372,12 @@ public class FileNewsSource implements NewsSource {
 		fnl.waitUntilLoad();
 		PredefinedKeyPhraseExtractor pkpe = PredefinedKeyPhraseExtractor
 				.getInstance();
+		TwoShingleKeyPhraseExtractor tskpe = TwoShingleKeyPhraseExtractor.getInstance();
 		for (NewsArticle news : fnl) {
-			List<String> result = pkpe.extractKeyPhrases(news);
-			System.out.println(Arrays.toString(result.toArray()));
+			List<String> result1 = pkpe.extractKeyPhrases(news);
+			List<String> result2 = tskpe.extractKeyPhrases(news);
+			System.out.println(Arrays.toString(result1.toArray()));
+			System.out.println(Arrays.toString(result2.toArray()));
 			System.out.println(news.getDate());
 		}
 

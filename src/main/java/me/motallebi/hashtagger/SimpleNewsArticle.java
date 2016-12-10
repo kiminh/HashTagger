@@ -4,6 +4,7 @@
 package me.motallebi.hashtagger;
 
 import java.util.Date;
+import java.util.regex.Pattern;
 
 /**
  * @author mrmotallebi
@@ -43,8 +44,9 @@ public class SimpleNewsArticle implements NewsArticle {
 	 */
 	@Override
 	public String getBody() {
-		if(this.newsBody == null)
-			throw new NullPointerException("newsBody is not initialized for this NewsArticle");
+		if (this.newsBody == null)
+			throw new NullPointerException(
+					"newsBody is not initialized for this NewsArticle");
 		return this.newsBody;
 	}
 
@@ -55,18 +57,31 @@ public class SimpleNewsArticle implements NewsArticle {
 	 */
 	@Override
 	public String getTitle() {
-		if(this.newsTitle == null)
-			throw new NullPointerException("newsTitle is not initialized for this NewsArticle");
+		if (this.newsTitle == null)
+			throw new NullPointerException(
+					"newsTitle is not initialized for this NewsArticle");
 		return this.newsTitle;
 	}
 
+	private static Pattern tagPattern = Pattern.compile("<.*?>");
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see me.motallebi.hashtagger.NewsArticle#setTitle(java.lang.String)
+	 */
 	@Override
 	public void setTitle(String newsTitle) {
 		// Check encoding etc. when setting
-		this.newsTitle = newsTitle;
-
+		if (newsTitle != null)
+			this.newsTitle = tagPattern.matcher(newsTitle).replaceAll("");
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see me.motallebi.hashtagger.NewsArticle#setBody(java.lang.String)
+	 */
 	@Override
 	public void setBody(String newsBody) {
 		// Check encoding etc. when setting
@@ -104,7 +119,8 @@ public class SimpleNewsArticle implements NewsArticle {
 	@Override
 	public Date getDate() {
 		if (this.newsDate == null)
-			throw new NullPointerException("Date is not defined for this NewsArticle");
+			throw new NullPointerException(
+					"Date is not defined for this NewsArticle");
 		// make safe copy
 		return (Date) this.newsDate.clone();
 	}
