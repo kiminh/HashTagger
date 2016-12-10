@@ -3,6 +3,8 @@
  */
 package me.motallebi.hashtagger;
 
+import java.util.Date;
+
 /**
  * @author mrmotallebi
  *
@@ -39,5 +41,15 @@ public interface NewsArticle {
 	 * @return
 	 */
 	public String getTitle();
+	
+	/**
+	 * @param date
+	 */
+	public void setDate(Date date);
+	
+	/**
+	 * @return
+	 */
+	public Date getDate();
 
 }

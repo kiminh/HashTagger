@@ -15,6 +15,8 @@ import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -42,6 +44,11 @@ public class FileNewsSource implements NewsSource {
 			- Constants.NEWS_RANGE_START + 1;
 	private List<NewsArticle> newsList = new ArrayList<>(this.numToLoad);
 	private volatile boolean loaded = false;
+
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(
+			Constants.NEWS_DATETIME_FORMAT);
+	private static final Pattern NEWS_PATTERN = Pattern
+			.compile(Constants.NEWS_FILE_REGEX);
 
 	/**
 	 * Create new FileNewsLoader object
@@ -89,7 +96,6 @@ public class FileNewsSource implements NewsSource {
 			downloadNews();
 		}
 
-		Pattern pattern = Pattern.compile(Constants.NEWS_FILE_REGEX);
 		File newsFilePath = new File(this.filePath);
 		File[] files = newsFilePath.listFiles(new FilenameFilter() {
 			@Override
@@ -106,9 +112,20 @@ public class FileNewsSource implements NewsSource {
 					"Path does not exist"));
 
 		for (File f : files) {
-			NewsArticle news = parseNewsfile(f, pattern);
-			if (news == null)
+			NewsArticle news;
+			try {
+				news = parseNewsfile(f, NEWS_PATTERN);
+			} catch (NewsLoadException e) {
+				System.err.println(e.getMessage());
+				e.printStackTrace();
+				// Something weird happened. Just return.
+				return;
+			}
+			if (news == null) {
+				System.err.println("Skipping file. No news returned for : "
+						+ f.getName());
 				continue;
+			}
 			this.newsList.add(news);
 		}
 		this.loaded = true;
@@ -122,9 +139,11 @@ public class FileNewsSource implements NewsSource {
 	 * @param f
 	 * @param pattern
 	 * @return
+	 * @throws NewsLoadException
 	 */
-	private static NewsArticle parseNewsfile(File f, Pattern pattern) {
-		if(pattern == null){
+	private static NewsArticle parseNewsfile(File f, Pattern pattern)
+			throws NewsLoadException {
+		if (pattern == null) {
 			pattern = Pattern.compile(Constants.NEWS_FILE_REGEX);
 		}
 		Matcher matcher;
@@ -132,17 +151,28 @@ public class FileNewsSource implements NewsSource {
 			matcher = pattern
 					.matcher(new String(Files.readAllBytes(f.toPath())));
 		} catch (IOException e) {
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			return null;
+			throw new NewsLoadException(
+					"Problem reading from news from file : " + f.getName(), e);
 		}
 		if (!matcher.matches())
 			return null;
 		NewsArticle news = new SimpleNewsArticle();
-		news.setTitle(matcher.group(Constants.NEWS_TITLE_GROUP));
-		news.setBody(matcher.group(Constants.NEWS_BODY_GROUP));
-		news.setId(Integer.valueOf(f.getName().split("\\.")[0]));
-		// Yeah this is naive and stupid..
+		try {
+			news.setTitle(matcher.group(Constants.NEWS_TITLE_GROUP));
+			news.setBody(matcher.group(Constants.NEWS_BODY_GROUP));
+			// Yeah this is naive and stupid..
+			news.setId(Integer.valueOf(f.getName().split("\\.")[0]));
+
+			String newsDate = matcher.group(Constants.NEWS_TIME_GROUP)
+					.replace("a.m.", "AM").replace("p.m.", "PM");
+			Date parsedDate = FileNewsSource.DATE_FORMAT.parse(newsDate);
+			news.setDate(parsedDate);
+		} catch (ParseException e) {
+			// Do nothing
+		} catch (IllegalStateException | IndexOutOfBoundsException e) {
+			throw new NewsLoadException("Problem with parsing file : "
+					+ f.getName(), e);
+		}
 		return news;
 	}
 
@@ -324,6 +354,13 @@ public class FileNewsSource implements NewsSource {
 
 	public static void main(String[] args) {
 
+		/*
+		 * try { SimpleDateFormat df = new SimpleDateFormat();
+		 * df.applyPattern("MMM. dd, yyyy, h:mm a");
+		 * df.parse("Feb. 24, 2016, 9:18 AM"); } catch (ParseException e1) { //
+		 * TODO Auto-generated catch block e1.printStackTrace(); }
+		 */
+
 		FileNewsSource fnl = new FileNewsSource(null, false);
 
 		new Thread() {
@@ -340,10 +377,12 @@ public class FileNewsSource implements NewsSource {
 		} catch (InterruptedException e) {
 		}
 		fnl.waitUntilLoad();
-		PredefinedKeyPhraseExtractor pkpe = PredefinedKeyPhraseExtractor.getInstance();
-		for (NewsArticle news : fnl){
-			List<String>result = pkpe.extractKeyPhrases(news);
-			System.out.println(Arrays.toString( result.toArray() ));
+		PredefinedKeyPhraseExtractor pkpe = PredefinedKeyPhraseExtractor
+				.getInstance();
+		for (NewsArticle news : fnl) {
+			List<String> result = pkpe.extractKeyPhrases(news);
+			System.out.println(Arrays.toString(result.toArray()));
+			System.out.println(news.getDate());
 		}
 
 	}

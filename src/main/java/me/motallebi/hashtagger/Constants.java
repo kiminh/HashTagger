@@ -50,10 +50,19 @@ public final class Constants {
 	public static final int NEWS_BODY_GROUP = Integer.valueOf(properties
 			.getProperty("news.body.group"));
 
-	public static final String TWEET_SAVE_LOCATION = properties.getProperty("tweet.save.location");
+	public static final int NEWS_TIME_GROUP = Integer.valueOf(properties
+			.getProperty("news.time.group"));
 
-	public static final int TWEET_RANGE_END = Integer.valueOf(properties.getProperty("tweet.range.end"));
+	public static final String TWEET_SAVE_LOCATION = properties
+			.getProperty("tweet.save.location");
 
-	public static final int TWEET_RANGE_START = Integer.valueOf(properties.getProperty("tweet.range.start"));
+	public static final int TWEET_RANGE_END = Integer.valueOf(properties
+			.getProperty("tweet.range.end"));
+
+	public static final int TWEET_RANGE_START = Integer.valueOf(properties
+			.getProperty("tweet.range.start"));
+
+	public static final String NEWS_DATETIME_FORMAT = properties
+			.getProperty("news.datetime.format");
 
 }
