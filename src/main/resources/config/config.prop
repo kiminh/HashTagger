@@ -2,9 +2,11 @@ news.url.pattern=http://insight4news.ucd.ie/article_detail/%d
 news.range.start=1
 news.range.end=10
 news.save.location=download
-news.file.regex=(?s).*?<header class=\\"page-header\\">(.*?)</header>.+<article class=\\"text-left\\">(.*?)</article>.*?
+news.file.regex=(?s).*?<header class=\\"page-header\\">(.*?)</header>.+<article class=\\"text-left\\">\\s*(<strong>(.*?)</strong>.*?)</article>.*?
 news.title.group=1
+news.datetime.format=MMM. dd, yyyy, h:mm a
 news.body.group=2
+news.time.group=3
 tweet.save.location=tweets
 tweet.range.start=1
 tweet.range.end=1000

@@ -18,10 +18,10 @@ public class PredefinedKeyPhraseExtractor extends AbstractKeyPhraseExtractor {
 	private PredefinedKeyPhraseExtractor() {
 	}
 
-	private static final PredefinedKeyPhraseExtractor INSTANCE = new PredefinedKeyPhraseExtractor();
+	private static final PredefinedKeyPhraseExtractor instance = new PredefinedKeyPhraseExtractor();
 
 	public static final PredefinedKeyPhraseExtractor getInstance() {
-		return INSTANCE;
+		return instance;
 	}
 
 	protected Pattern pattern = Pattern

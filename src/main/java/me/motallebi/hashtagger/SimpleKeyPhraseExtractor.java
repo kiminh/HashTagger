@@ -20,10 +20,10 @@ public class SimpleKeyPhraseExtractor extends AbstractKeyPhraseExtractor {
 	private SimpleKeyPhraseExtractor() {
 	}
 
-	public static final SimpleKeyPhraseExtractor INSTANCE = new SimpleKeyPhraseExtractor();
+	public static final SimpleKeyPhraseExtractor instance = new SimpleKeyPhraseExtractor();
 	
 	public static final SimpleKeyPhraseExtractor getInstance() {
-		return INSTANCE;
+		return instance;
 	}
 
 	/*
