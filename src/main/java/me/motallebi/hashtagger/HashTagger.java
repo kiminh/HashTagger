@@ -1,11 +1,6 @@
 package me.motallebi.hashtagger;
-//package me.motallebi.hashtagger;
-/**
- * 
- */
 
 
-//<<<<<<< HEAD
 import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -14,27 +9,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-
-
-
-
-
-
-
-
-
-
-
-
 import twitter4j.HashtagEntity;
-//=======
 import twitter4j.Status;
-//>>>>>>> 8952090462630439313417ef58a344ad43d9d98a
 
 /**
  * Program entry point. Main class.
  * 
- * @author mrmotallebi
+ * @author mrmotallebi and mhmotallebi
  *
  */
 public class HashTagger {
@@ -45,8 +26,6 @@ public class HashTagger {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-//<<<<<<< HEAD
-//		// TODO Auto-generated method stub
 //		/*
 //		 * I Train classifier
 //		 * II use classifier
@@ -93,22 +72,19 @@ public class HashTagger {
 //			
 //		}
 		
-//=======
-		SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
 		//1. Read and load tweets of one day
+		SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
 		String dateInString = "06-07-2016";
 		Date date=null;
 		try {
 			date = sdf.parse(dateInString);
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		FileTweetSource fts = new FileTweetSource("/media/hossein/2020202020202020/06/all-1",date);
-
 		fts.loadTweets();
-		
 		HashtagFinder hashtagFinder = new SimpleHashtagFinder(fts.getTweetList());
+		
 		//2. Load News articles
 		FileNewsSource fns = new FileNewsSource("/home/hossein/Downloads/CMPUT692/twitter-data/news-test/");
 		fns.loadNews();
@@ -118,38 +94,37 @@ public class HashTagger {
 		while(itNA.hasNext()){
 			NewsArticle na = itNA.next();
 			System.out.println("Start of news article: " + na.getId());
+			
 			//3.1 find keyphrases of article with method 1
 			//SimpleKeyPhraseExtractor skpe = SimpleKeyPhraseExtractor.getInstance();
 			//List<String> keyPhrases = skpe.extractKeyPhrases(na);
-			List<HashtagEntity> hashtags = new ArrayList<HashtagEntity>();
-			
-			List<String> keyPhrases = PredefinedKeyPhraseExtractor.getInstance().extractKeyPhrase(na);
+			List<String> keyPhrases = PredefinedKeyPhraseExtractor.getInstance().extractKeyPhrases(na);
 			
 			//3.2 find tweets and hashtags of keyphrases
+			List<HashtagEntity> hashtags = new ArrayList<HashtagEntity>();
 			for(String str: keyPhrases){
-				str = str.replaceAll("<.*?>", "");
+				str = str.replaceAll("<.*?>", "");// in early version some of them contained HTML tags inside! had to remove them
 				ArrayList<Status> result1 = (ArrayList<Status>) Arrays.asList(hashtagFinder.getStatusWithWord(str.split(" ")[0]));
 				ArrayList<Status> result2 = (ArrayList<Status>) Arrays.asList(hashtagFinder.getStatusWithWord(str.split(" ")[1]));
-				result1.retainAll(result2);
+				result1.retainAll(result2);//get intersection since each keyphase has 2 strings and tweet should contain both of them.
 				for (Status s : result1){
-					for (HashtagEntity he:s.getHashtagEntities()){
-						hashtags.add(he);
-					}
+					hashtags.addAll(Arrays.asList(s.getHashtagEntities()));
 				}
 			}
 //	        System.out.println("Hashtags for news " + na.getTitle() + "\nare: ");
 //			for(HashtagEntity he: hashtags){
 //				System.out.println(he.getText());
 //			}
+			
 			//3.3 Now, for each hashtag, compute feature vector
 			List<List<Float>> allFeatures = new ArrayList<List<Float>>();
+			SimpleFeatureComputer sfc = new SimpleFeatureComputer(na,fts,fns, hashtagFinder, hashtags);
 			for(HashtagEntity h:hashtags){
-				SimpleFeatureComputer sfc = new SimpleFeatureComputer(na,fts,fns, hashtagFinder);
 				List<Float> featuresValues = sfc.getFeaturesList();
 				allFeatures.add(featuresValues);
 				
 			}
-			//3.4 write them into a CSV file
+			//3.4 write them into a CSV file (to use it in Random Forest of WEKA)
 			CSVWriter csv = null;
 			try {
 				csv = CSVWriter.getInstance(na.getId() + ".csv");
