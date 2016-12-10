@@ -3,8 +3,10 @@
  */
 package me.motallebi.hashtagger;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -14,8 +16,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
-
-import java.time.*;
 
 /**
  * @author mhmotallebi
@@ -39,7 +39,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	private static Duration lambda = Duration.ofHours(4);
 	private static Duration gamma = Duration.ofHours(24);
 	private static Duration lambda2 = Duration.ofHours(8);
-	
+
 	public enum DurationEnum{
 		LAMBDA, GAMMA, LAMBDA2
 	}
@@ -55,7 +55,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		this.minArticleSpecificTweetBagSize = calcArticleSpecificMinTweetBagSize();
 		calcMaxTweetBagSize();//this.maxTweetBagSize
 		calcMinTweetBagSize();//this.minTweetBagSize
-		this.NEWSTIME = this.article.getTime();
+		this.NEWSTIME = this.article.getDate();
 	}
 
 
@@ -96,13 +96,13 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		int minBagSize = 9999;
 		for(HashtagEntity hashtag:allHashtagsOfArticle){
 			Status[] tweets = hf.getStatusWithHT(hashtag.getText());
-//			int count = 0;
-//			for(Status tweet: tweets){
-//				if()
-//					count++;
-//			}
-//			if(count>maxBagSize)
-//				maxBagSize = count;
+			//			int count = 0;
+			//			for(Status tweet: tweets){
+			//				if()
+			//					count++;
+			//			}
+			//			if(count>maxBagSize)
+			//				maxBagSize = count;
 			// We have a hashtag and all of its tweets. Now, we want only tweets that are part related to this article
 			// get keyphrase of this article
 			List<String> keyPhrases = PredefinedKeyPhraseExtractor.getInstance().extractKeyPhrases(this.article);
@@ -135,7 +135,6 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		if(maxTweetBagSize != -1)
 			return;
 		maxTweetBagSize = hf.getMaxTweetsForHashtags();
-		
 	}
 
 	private void calcMinTweetBagSize() {
@@ -144,7 +143,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		minTweetBagSize = hf.getMinTweetsForHashtags();
 	}
 
-	
+
 	/* (non-Javadoc)
 	 * @see me.motallebi.hashtagger.FeatureComputer#LS(me.motallebi.hashtagger.NewsArticle, me.motallebi.hashtagger.Hashtag, java.util.Date)
 	 */
@@ -249,7 +248,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	public void EG(Float TR, NewsArticle article, HashtagEntity h, DurationEnum lambda3) {//TODO
 		// TODO time frame is unclear for me!
 		//temporary:///////////////
-		featureList.set(5,(float) 1.0);
+		featureList.set(5, 1.0f);
 		if(true)return;
 		///////////////////////////
 		List<Status> tweets = new ArrayList<Status>();
@@ -262,11 +261,11 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	 */
 	@Override
 	public void HE(NewsArticle a, HashtagEntity h) {// Hashtag in Headline
-		float inText= (float)0.0;
+		float inText= 0.0f;
 		String temp = a.getTitle() + " " + a.getBody();
 		temp = temp.replaceAll("\\s+", "");
 		if(temp.contains(h.getText()))
-			inText = (float)1.0;
+			inText = 1.0f;
 		featureList.set(6, inText);
 	}
 
@@ -281,7 +280,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		for(Status tweet:tweets){
 			hs.add(tweet.getUser().getId());
 		}
-		featureList.set(7, (float) hs.size()/tweets.size());
+		featureList.set(7,  (1.0f * hs.size())/tweets.size());
 	}
 
 	/* (non-Javadoc)
@@ -301,12 +300,12 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		featureList.set(8, (float) maxFollowers);
 	}
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////	
 
 	private Float termFrequency(String w, String text){
 		return (float) (0.4 + ((1-0.4)*wordFreq(w,text))/(this.maxFreq));
 	}
-	
+
 	private Float inverseDocumentFrequency(String w, List<String> strings ){
 		int corpusSize = strings.size();
 		int count = 0;
@@ -320,9 +319,9 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	private double wordFreq(String t, String text) {
 		int count = StringUtils.countMatches(text,t);
 		int totalCount = text.split("\\s").length;
-		return (float)count/totalCount;
+		return (1.0f * count)/totalCount;
 	}
-	
+
 	private List<String> createBagOfWords(NewsArticle article, List<Status> tweets){
 		HashSet<String> hs = new HashSet<String>();
 		String temp= article.getTitle() + " " + article.getBody();
@@ -335,11 +334,11 @@ public class SimpleFeatureComputer implements FeatureComputer {
 			}
 		List<String> ret = new ArrayList<String>(hs);
 		return ret;
-		
+
 	}
-	
+
 	private Float cosineSimilarity(List<Float> a, List<Float> b) throws Exception{
-		float sum = (float) 0.0;
+		float sum =  0.0f;
 		if(a.size()!=b.size())
 			throw new Exception("Size of vectors in cosineSimilarity does not match");
 		for(int i=0;i<a.size();i++){
@@ -379,7 +378,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 				maxWord = word;
 			}
 		}
-		return (float) max/words.length;
+		return (1.0f * max)/words.length;
 	}
 
 	private boolean isTweetRelatedToArticle(NewsArticle article2, Status tweet) {
@@ -398,23 +397,23 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		Status[] tweets = hf.getStatusWithHT(h.getText());
 		List<Status> validTweets = new ArrayList<Status>();
 		for(Status tweet:tweets){
-		    LocalDateTime timeTweet = LocalDateTime.ofInstant(tweet.getCreatedAt().toInstant(), ZoneId.of("GMT"));
-		    LocalDateTime timeArticle = LocalDateTime.ofInstant(this.article.getTime(), ZoneId.of("GMT"));
-		    Duration duration = Duration.between(timeTweet, timeArticle);
-		    if(isTweetRelatedToArticle(this.article, tweet)){
-			    if(de.toString().equals("GAMMA")){
-				    if(duration.compareTo(gamma)>0)
+			LocalDateTime timeTweet = LocalDateTime.ofInstant(tweet.getCreatedAt().toInstant(), ZoneId.of("GMT"));
+			LocalDateTime timeArticle = LocalDateTime.ofInstant(this.article.getDate().toInstant(), ZoneId.of("GMT"));
+			Duration duration = Duration.between(timeTweet, timeArticle);
+			if(isTweetRelatedToArticle(this.article, tweet)){
+				if(de.toString().equals("GAMMA")){
+					if(duration.compareTo(gamma)>0)
 						validTweets.add(tweet);
-			    }
-			    else if(de.toString().equals("LAMBA")){
-				    if(duration.compareTo(lambda)>0)
+				}
+				else if(de.toString().equals("LAMBA")){
+					if(duration.compareTo(lambda)>0)
 						validTweets.add(tweet);		    	
-			    }
-			    else if(de.toString().equals("LAMBA2")){
-				    if(duration.compareTo(lambda2)>0)
+				}
+				else if(de.toString().equals("LAMBA2")){
+					if(duration.compareTo(lambda2)>0)
 						validTweets.add(tweet);		    	
-			    }
-		    }
+				}
+			}
 		}
 		return validTweets;
 	}
@@ -423,21 +422,21 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		Status[] tweets = hf.getStatusWithHT(h.getText());
 		List<Status> validTweets = new ArrayList<Status>();
 		for(Status tweet:tweets){
-		    LocalDateTime timeTweet = LocalDateTime.ofInstant(tweet.getCreatedAt().toInstant(), ZoneId.of("GMT"));
-		    LocalDateTime timeArticle = LocalDateTime.ofInstant(this.article.getTime(), ZoneId.of("GMT"));
-		    Duration duration = Duration.between(timeTweet, timeArticle);
-		    if(de.toString().equals("GAMMA")){
-			    if(duration.compareTo(gamma)>0)
+			LocalDateTime timeTweet = LocalDateTime.ofInstant(tweet.getCreatedAt().toInstant(), ZoneId.of("GMT"));
+			LocalDateTime timeArticle = LocalDateTime.ofInstant(this.article.getDate().toInstant(), ZoneId.of("GMT"));
+			Duration duration = Duration.between(timeTweet, timeArticle);
+			if(de.toString().equals("GAMMA")){
+				if(duration.compareTo(gamma)>0)
 					validTweets.add(tweet);
-		    }
-		    else if(de.toString().equals("LAMBA")){
-			    if(duration.compareTo(lambda)>0)
+			}
+			else if(de.toString().equals("LAMBA")){
+				if(duration.compareTo(lambda)>0)
 					validTweets.add(tweet);		    	
-		    }
-		    else if(de.toString().equals("LAMBA2")){
-			    if(duration.compareTo(lambda2)>0)
+			}
+			else if(de.toString().equals("LAMBA2")){
+				if(duration.compareTo(lambda2)>0)
 					validTweets.add(tweet);		    	
-		    }
+			}
 
 		}
 		return validTweets;

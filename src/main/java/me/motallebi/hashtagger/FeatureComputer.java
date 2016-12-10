@@ -3,7 +3,6 @@
  */
 package me.motallebi.hashtagger;
 
-import java.util.Date;
 import java.util.List;
 
 import me.motallebi.hashtagger.SimpleFeatureComputer.DurationEnum;
@@ -15,11 +14,13 @@ import twitter4j.HashtagEntity;
  */
 public interface FeatureComputer {
 
+	// void TR(NewsArticle a, HashtagEntity h, Date t); // TRending hashtags
+	/*
+	 * needs a function tell how many times this HashtagEntity has occured in
+	 * the past time window t
+	 */
 
-	 //void TR(NewsArticle a, HashtagEntity h, Date t); // TRending hashtags
-	/* needs a function tell how many times this HashtagEntity has occured in the past time window t*/
-	
-	 void HE(NewsArticle a, HashtagEntity h); // HashtagEntity in hEadLine	
+	void HE(NewsArticle a, HashtagEntity h); // HashtagEntity in hEadLine
 
 	void LS(NewsArticle article, HashtagEntity h, DurationEnum lambda2,
 			List<NewsArticle> articles);
@@ -37,6 +38,5 @@ public interface FeatureComputer {
 	void UR(NewsArticle article, HashtagEntity h, DurationEnum LAMBDA);
 
 	void EG(Float TR, NewsArticle article, HashtagEntity h, DurationEnum lambda3);
-
 
 }
