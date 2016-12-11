@@ -47,6 +47,7 @@ public class FileNewsSource implements NewsSource {
 
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(
 			Constants.NEWS_DATETIME_FORMAT);
+
 	private static final Pattern NEWS_PATTERN = Pattern
 			.compile(Constants.NEWS_FILE_REGEX);
 
@@ -162,14 +163,19 @@ public class FileNewsSource implements NewsSource {
 			news.setBody(matcher.group(Constants.NEWS_BODY_GROUP));
 			// Yeah this is naive and stupid..
 			news.setId(Integer.valueOf(f.getName().split("\\.")[0]));
-
+			// Code to get around the stupid custom date format
+			// ReplaceAll can be optimized if a Pattern is created in advance
 			String newsDate = matcher.group(Constants.NEWS_TIME_GROUP)
-					.replace("a.m.", "AM").replace("p.m.", "PM");
+					.replace("a.m.", "AM").replace("p.m.", "PM")
+					.replace("June", "Jun.").replace("March", "Mar.")
+					.replace("May", "May.").replace("July", "Jul.")
+					.replaceAll(" (\\d\\d??) AM", " $1\\:00 AM")
+					.replaceAll(" (\\d\\d??) PM", " $1\\:00 PM");
+			// System.out.println(f.getName() + "-- " + newsDate);
 			Date parsedDate = FileNewsSource.DATE_FORMAT.parse(newsDate);
 			news.setDate(parsedDate);
-		} catch (ParseException e) {
-			// Do nothing
-		} catch (IllegalStateException | IndexOutOfBoundsException e) {
+		} catch (ParseException | IllegalStateException
+				| IndexOutOfBoundsException e) {
 			throw new NewsLoadException("Problem with parsing file : "
 					+ f.getName(), e);
 		}
@@ -372,7 +378,8 @@ public class FileNewsSource implements NewsSource {
 		fnl.waitUntilLoad();
 		PredefinedKeyPhraseExtractor pkpe = PredefinedKeyPhraseExtractor
 				.getInstance();
-		TwoShingleKeyPhraseExtractor tskpe = TwoShingleKeyPhraseExtractor.getInstance();
+		TwoShingleKeyPhraseExtractor tskpe = TwoShingleKeyPhraseExtractor
+				.getInstance();
 		for (NewsArticle news : fnl) {
 			List<String> result1 = pkpe.extractKeyPhrases(news);
 			List<String> result2 = tskpe.extractKeyPhrases(news);
