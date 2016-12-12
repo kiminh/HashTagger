@@ -39,19 +39,35 @@ public class MTweet implements Status {
 	private final int hashCode;
 	private final HashtagEntity[] hashtagEntities;
 
-	private MTweet(Status s) {
+	private MTweet(Status s, boolean lowerCase) {
 		this.id = s.getId();
-		this.text = s.getText();
+		this.text = lowerCase ? s.getText().toLowerCase() : s.getText();
 		this.user = new MUser(s.getUser());
 		this.lang = s.getLang();
 		this.retweetCount = s.getRetweetCount();
 		this.createdAt = s.getCreatedAt();
-		this.hashtagEntities = s.getHashtagEntities();
 		this.hashCode = s.hashCode();
+		if (!lowerCase)
+			this.hashtagEntities = s.getHashtagEntities();
+		else {
+			this.hashtagEntities = new MHashtag[s.getHashtagEntities().length];
+			HashtagEntity[] inHashtags = s.getHashtagEntities();
+			for (int i = 0; i < this.hashtagEntities.length; i++) {
+				this.hashtagEntities[i] = new MHashtag(inHashtags[i]);
+			}
+		}
+	}
+
+	private MTweet(Status s) {
+		this(s, true);
 	}
 
 	public static MTweet asMTweet(Status s) {
-		return new MTweet(s);
+		return new MTweet(s, true);
+	}
+
+	public static MTweet asMTweet(Status s, boolean allLowerCase) {
+		return new MTweet(s, allLowerCase);
 	}
 
 	public static List<Status> asMTweetList(List<? extends Status> oldStatus) {
@@ -61,6 +77,34 @@ public class MTweet implements Status {
 			returnList.add(mtweet);
 		}
 		return returnList;
+	}
+
+	static class MHashtag implements HashtagEntity {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5793918036463144714L;
+		private HashtagEntity wrapped;
+
+		public MHashtag(HashtagEntity h) {
+			this.wrapped = h;
+		}
+
+		@Override
+		public int getEnd() {
+			return wrapped.getEnd();
+		}
+
+		@Override
+		public int getStart() {
+			return wrapped.getStart();
+		}
+
+		@Override
+		public String getText() {
+			return wrapped.getText().toLowerCase();
+		}
+
 	}
 
 	static class MUser implements User {
