@@ -147,7 +147,7 @@ public class FileTweetSource implements TweetSource {
 				Status s;
 				try {
 					s = TwitterObjectFactory.createStatus(line);
-					retList.add(s);
+					retList.add(MTweet.asMTweet(s));
 				} catch (TwitterException e) {
 					// pass
 					continue;
