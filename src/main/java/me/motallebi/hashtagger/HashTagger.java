@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
 
@@ -81,12 +82,12 @@ public class HashTagger {
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
-		FileTweetSource fts = new FileTweetSource("/media/hossein/2020202020202020/06/all-1",date);
+		FileTweetSource fts = new FileTweetSource("/media/hossein/2020202020202020/06/all-6",date);
 		fts.loadTweets();
 		HashtagFinder hashtagFinder = new SimpleHashtagFinder(fts.getTweetList());
 		
 		//2. Load News articles
-		FileNewsSource fns = new FileNewsSource("/home/hossein/Downloads/CMPUT692/twitter-data/news-test/");
+		FileNewsSource fns = new FileNewsSource("/home/hossein/Downloads/CMPUT692/twitter-data/news-06-jul-16/");
 		fns.loadNews();
 		Iterator<NewsArticle> itNA = fns.iterator();//iterator containing news articles
 		
@@ -94,50 +95,58 @@ public class HashTagger {
 		while(itNA.hasNext()){
 			NewsArticle na = itNA.next();
 			System.out.println("Start of news article: " + na.getId());
-			
+			try{
+				//System.out.println(na.getDate());
+				//System.out.println("--- Date is working");
+			}catch(Exception e){
+				System.out.println("ERROR in Date");
+				continue;
+			}
 			//3.1 find keyphrases of article with method 1
 			//SimpleKeyPhraseExtractor skpe = SimpleKeyPhraseExtractor.getInstance();
 			//List<String> keyPhrases = skpe.extractKeyPhrases(na);
 			List<String> keyPhrases = PredefinedKeyPhraseExtractor.getInstance().extractKeyPhrases(na);
 			
-			//3.2 find tweets and hashtags of keyphrases
-			List<HashtagEntity> hashtags = new ArrayList<HashtagEntity>();
-			for(String str: keyPhrases){
-				 //= null, result2 = null;
-				str = str.replaceAll("<.*?>", "");// in early version some of them contained HTML tags inside! had to remove them
-				Status[] temp1 = hashtagFinder.getStatusWithWord(str.split(" ")[0]);
-				Status[] temp2 = hashtagFinder.getStatusWithWord(str.split(" ")[1]);
-				if(temp1 == null || temp2 == null)
-					continue;
-				//List<Status> result1 = new ArrayList<Status>();
-				//result1 = (List<Status>) Arrays.asList(temp1);
-				List<Status> result1 = new ArrayList<>(Arrays.asList(temp1));
-				List<Status> result2 = (List<Status>) Arrays.asList(temp2);
-				result1.retainAll(result2);//get intersection since each keyphase has 2 strings and tweet should contain both of them.
-				for (Status s : result1){
-					hashtags.addAll(Arrays.asList(s.getHashtagEntities()));
-				}
+			//3.2.1 find hashtags of keyphrases
+			List<HashtagEntity> hashtags1 = findHashtagsFromKeyphrases(hashtagFinder, keyPhrases,1);
+			//3.2.2 find hashtags of hashtags improvement-1
+			List<String> keyphrasesFromHashtags = new ArrayList<String>();
+			for(int i=0;i<hashtags1.size()-1;i+=2){
+				keyphrasesFromHashtags.add(hashtags1.get(i).getText() + " " + hashtags1.get(i+1).getText());
 			}
-//	        System.out.println("Hashtags for news " + na.getTitle() + "\nare: ");
-//			for(HashtagEntity he: hashtags){
-//				System.out.println(he.getText());
-//			}
+			List<HashtagEntity> hashtags = findHashtagsFromKeyphrases(hashtagFinder, keyphrasesFromHashtags,2);
+			
+			//	        System.out.println("Hashtags for news " + na.getTitle() + "\nare: ");
+			for(HashtagEntity he: hashtags1){
+				System.out.print(he.getText() + " ");
+			}
+			if(hashtags1.size()>0)
+				System.out.println();
+			for(HashtagEntity he: hashtags){
+				System.out.print(he.getText() + " ");
+			}
+			if(hashtags.size()>0)
+				System.out.println();
 			
 			//3.3 Now, for each hashtag, compute feature vector
-			List<List<Float>> allFeatures = new ArrayList<List<Float>>();
+			List<List<Object>> allFeatures = new ArrayList<List<Object>>();
 			SimpleFeatureComputer sfc = new SimpleFeatureComputer(na,fts,fns, hashtagFinder, hashtags);
 			for(HashtagEntity h:hashtags){
 				sfc.computeFeatures(h);
 				List<Float> featuresValues = sfc.getFeaturesList();
-				allFeatures.add(featuresValues);
+				List<String> temp = new ArrayList<String>(featuresValues.size()+1);
+				temp.add(h.getText());
+				for(Float f:featuresValues)
+					temp.add(f.toString());
+				allFeatures.add((new ArrayList<Object>(temp)));
 				
 			}
 			//3.4 write them into a CSV file (to use it in Random Forest of WEKA)
 			CSVWriter csv = null;
 			try {
-				csv = CSVWriter.getInstance(na.getId() + ".csv");
-				for (List<Float> fv:allFeatures)
-					csv.writeToFile(fv);
+					csv = CSVWriter.getInstance(na.getId() + ".csv");
+					for(List<Object> objs:allFeatures)
+						csv.writeToFile(objs);
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 					System.out.println("CSV file cannot be generated!");
@@ -146,5 +155,57 @@ public class HashTagger {
 					System.out.println("CSVWriter was not able to write into the file!");
 			}		
 		}
+	}
+
+	/**
+	 * @param hashtagFinder
+	 * @param keyPhrases
+	 * @param i 
+	 * @return
+	 */
+	private static List<HashtagEntity> findHashtagsFromKeyphrases(
+			HashtagFinder hashtagFinder, List<String> keyPhrases, int reqType) {
+		List<HashtagEntity> hashtags = new ArrayList<HashtagEntity>();
+		for(String str: keyPhrases){
+			 //= null, result2 = null;
+			//str = str.replaceAll("<.*?>", "");// in early version some of them contained HTML tags inside! had to remove them
+			if(str.split(" ").length<2){
+				System.err.println("KEyword does not contain two words!: " + str);
+				continue;
+			}
+			Status[] temp1 = null, temp2 =null;
+			if(reqType==1){
+				temp1 = hashtagFinder.getStatusWithWord(str.split(" ")[0]);
+				temp2 = hashtagFinder.getStatusWithWord(str.split(" ")[1]);
+			}
+			else{
+				temp1 = hashtagFinder.getStatusWithHT(str.split(" ")[0]);
+				temp2 = hashtagFinder.getStatusWithHT(str.split(" ")[1]);
+			}
+			if(temp1 == null || temp2 == null)
+				continue;
+			//List<Status> result1 = new ArrayList<Status>();
+			//result1 = (List<Status>) Arrays.asList(temp1);
+			List<Status> result1 = new ArrayList<>(Arrays.asList(temp1));
+			List<Status> result2 = (List<Status>) Arrays.asList(temp2);
+			result1.retainAll(result2);//get intersection since each keyphase has 2 strings and tweet should contain both of them.
+			for (Status s : result1){
+				//hashtags.addAll(Arrays.asList(s.getHashtagEntities()));
+				for(HashtagEntity he: s.getHashtagEntities()){
+					if(isNotRedundant(he,hashtags) && he.getText().length()>1)
+						hashtags.add(he);
+				}
+			}
+		}
+		return hashtags;
+	}
+
+	private static boolean isNotRedundant(HashtagEntity he,
+			List<HashtagEntity> hashtags) {
+		// TODO Auto-generated method stub
+		for(HashtagEntity h:hashtags)
+			if(h.getText().toLowerCase().equals(he.getText().toLowerCase()))
+				return false;
+		return true;
 	}
 }

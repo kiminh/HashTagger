@@ -360,7 +360,7 @@ public class FileNewsSource implements NewsSource {
 
 	public static void main(String[] args) {
 
-		FileNewsSource fnl = new FileNewsSource(null, false);
+		FileNewsSource fnl = new FileNewsSource("/home/hossein/Downloads/CMPUT692/twitter-data/news-test/", false);
 
 		new Thread() {
 			public void run() {

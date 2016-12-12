@@ -36,15 +36,15 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	private float maxFreq;
 	private List<HashtagEntity> allHashtagsOfArticle;
 	private Date NEWSTIME;
-	private static Duration lambda = Duration.ofHours(4);
-	private static Duration gamma = Duration.ofHours(24);
-	private static Duration lambda2 = Duration.ofHours(8);
+	private static Duration lambda = Duration.ofHours(2);
+	private static Duration gamma = Duration.ofHours(6);
+	private static Duration lambda2 = Duration.ofHours(4);
 
 	public enum DurationEnum{
 		LAMBDA, GAMMA, LAMBDA2
 	}
 	public SimpleFeatureComputer(NewsArticle article, FileTweetSource fts, FileNewsSource fns, HashtagFinder hashtagFinder, List<HashtagEntity> hashtags) {
-		featureList = new ArrayList<Float>(numberOfFeatures);
+		//this.featureList = new ArrayList<Float>(numberOfFeatures);
 		this.article = article;
 		this.fts = fts;
 		this.hf = hashtagFinder;
@@ -55,7 +55,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		this.minArticleSpecificTweetBagSize = calcArticleSpecificMinTweetBagSize();
 		calcMaxTweetBagSize();//this.maxTweetBagSize
 		calcMinTweetBagSize();//this.minTweetBagSize
-		this.NEWSTIME = this.article.getDate();
+		//this.NEWSTIME = this.article.getDate();
 	}
 
 
@@ -70,6 +70,9 @@ public class SimpleFeatureComputer implements FeatureComputer {
 			// for each keyphrase, find related tweets
 			List<List<Long>> allValidIDs = new ArrayList<List<Long>>();
 			for(String kph:keyPhrases){
+				if(kph.split(" ").length<2){
+					continue;
+				}
 				String part1 = kph.split(" ")[0];
 				String part2 = kph.split(" ")[1];
 				List<Long> validIDs = new ArrayList<Long>();
@@ -109,6 +112,9 @@ public class SimpleFeatureComputer implements FeatureComputer {
 			// for each keyphrase, find related tweets
 			List<List<Long>> allValidIDs = new ArrayList<List<Long>>();
 			for(String kph:keyPhrases){
+				if(kph.split(" ").length<2){
+					continue;
+				}
 				String part1 = kph.split(" ")[0];
 				String part2 = kph.split(" ")[1];
 				List<Long> validIDs = new ArrayList<Long>();
@@ -157,6 +163,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		tweets = findArticleSpecificTweets(article, h,lambda2);// find all tweets of article a that contain this hashtag in this time.
 
 		String tweetsText = "";//convert list of tweets to a string
+		//TODO: I think it needs removal of stopwords!
 		for(Status t:tweets){
 			tweetsText+=t.getText() + " ";// text of one tweet.
 		}
@@ -169,7 +176,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 			hashtagsVector.add(termFrequency(str, tweetsText));
 		}		
 		try {
-			featureList.set(0,cosineSimilarity(articleVector, hashtagsVector));
+			this.featureList.add(cosineSimilarity(articleVector, hashtagsVector));
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Exception in Cosine Similarity!");
@@ -183,7 +190,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	public void LF(NewsArticle a, HashtagEntity h, DurationEnum LAMBDA) {
 		List<Status> tweets = new ArrayList<Status>();
 		tweets = findArticleSpecificTweets(a, h, LAMBDA);// fin all tweets that contain this hashtag in this time.
-		featureList.set(1,(float) (tweets.size()-this.minArticleSpecificTweetBagSize)/(maxArticleSpecificTweetBagSize-minArticleSpecificTweetBagSize));
+		featureList.add((float) (tweets.size()-this.minArticleSpecificTweetBagSize)/(maxArticleSpecificTweetBagSize-minArticleSpecificTweetBagSize));
 	}
 
 	/* (non`-Javadoc)
@@ -211,7 +218,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 			hashtagsVector.add(termFrequency(str, tweetsText));
 		}
 		try {
-			featureList.set(2, cosineSimilarity(articleVector, hashtagsVector));
+			this.featureList.add( cosineSimilarity(articleVector, hashtagsVector));
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Exception in Cosine Similarity!");
@@ -225,7 +232,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	public void GF(HashtagEntity h, DurationEnum GAMMA) {
 		List<Status> tweets = new ArrayList<Status>();
 		tweets = findTweets(h,GAMMA);// fin all tweets that contain this hashtag in this time.
-		featureList.set(3, (float) (tweets.size()-minTweetBagSize)/(maxTweetBagSize-minTweetBagSize));
+		featureList.add( (float) (tweets.size()-minTweetBagSize)/(maxTweetBagSize-minTweetBagSize));
 	}
 
 	/* (non-Javadoc)
@@ -238,7 +245,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 
 		tweetsNewer = findArticleSpecificTweets(a, h,LAMBDA);// find all tweets that contain this hashtag in this time.
 		tweetsOlder = findArticleSpecificTweets(a, h,DurationEnum.LAMBDA2);// find all tweets of article a that contain this hashtag in this time.
-		featureList.set(4, (float) (2*tweetsNewer.size() - tweetsOlder.size())/(tweetsOlder.size()-tweetsNewer.size()));
+		featureList.add( (float) (2*tweetsNewer.size() - tweetsOlder.size())/(tweetsOlder.size()-tweetsNewer.size()));
 	}
 
 	/* (non-Javadoc)
@@ -248,12 +255,12 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	public void EG(Float TR, NewsArticle article, HashtagEntity h, DurationEnum lambda3) {//TODO
 		// TODO time frame is unclear for me!
 		//temporary:///////////////
-		featureList.set(5, 1.0f);
+		featureList.add( 1.0f);
 		if(true)return;
 		///////////////////////////
 		List<Status> tweets = new ArrayList<Status>();
 		tweets = findArticleSpecificTweets(article, h, lambda3);
-		featureList.set(5, (float)(1.0+TR)*tweets.size());
+		featureList.add( (float)(1.0+TR)*tweets.size());
 	}
 
 	/* (non-Javadoc)
@@ -266,7 +273,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		temp = temp.replaceAll("\\s+", "");
 		if(temp.contains(h.getText()))
 			inText = 1.0f;
-		featureList.set(6, inText);
+		featureList.add( inText);
 	}
 
 	/* (non-Javadoc)
@@ -280,7 +287,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		for(Status tweet:tweets){
 			hs.add(tweet.getUser().getId());
 		}
-		featureList.set(7,  (1.0f * hs.size())/tweets.size());
+		featureList.add(  (1.0f * hs.size())/tweets.size());
 	}
 
 	/* (non-Javadoc)
@@ -297,7 +304,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 			if(temp>maxFollowers)
 				maxFollowers = temp;
 		}
-		featureList.set(8, (float) maxFollowers);
+		featureList.add( (float) maxFollowers);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -309,15 +316,18 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	private Float inverseDocumentFrequency(String w, List<String> strings ){
 		int corpusSize = strings.size();
 		int count = 0;
+		w = w.toLowerCase();
 		for(String ns:strings){
-			if(ns.contains(w))
+			if(ns.toLowerCase().contains(w))
 				count++;
 		}
+		if(count==0)
+			return (float)0.0;
 		return (float) Math.log10(corpusSize/count);
 	}
 
 	private double wordFreq(String t, String text) {
-		int count = StringUtils.countMatches(text,t);
+		int count = StringUtils.countMatches(text.toLowerCase(),t.toLowerCase());
 		int totalCount = text.split("\\s").length;
 		return (1.0f * count)/totalCount;
 	}
@@ -326,11 +336,13 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		HashSet<String> hs = new HashSet<String>();
 		String temp= article.getTitle() + " " + article.getBody();
 		for(String str:temp.split("\\s") ){
-			hs.add(str);
+			if(str.length()>1)
+				hs.add(str);
 		}
 		for(Status t:tweets)
 			for(String str:t.getText().split("\\s")){
-				hs.add(str);
+				if(str.length()>1)
+					hs.add(str);
 			}
 		List<String> ret = new ArrayList<String>(hs);
 		return ret;
@@ -348,6 +360,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	}
 
 	public void computeFeatures(HashtagEntity hashtag) {
+		this.featureList = new ArrayList<Float>(numberOfFeatures);
 		LS(this.article, hashtag, DurationEnum.LAMBDA, this.articles);
 		LF(this.article, hashtag, DurationEnum.LAMBDA);
 		GS(this.article, hashtag, DurationEnum.GAMMA);
@@ -366,7 +379,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	private Float calcMaxFreq() {
 		// calculate maximum frequency for all terms we have so we can have the maximum in
 		// in the beginning.
-		String text = this.article.getTitle() + " " + this.article.getBody();
+		String text = this.article.getTitle().toLowerCase() + " " + this.article.getBody().toLowerCase();
 		String[] words = text.split(" ");
 		int max = -1;
 		@SuppressWarnings("unused")
@@ -384,6 +397,9 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	private boolean isTweetRelatedToArticle(NewsArticle article2, Status tweet) {
 		List<String> keyPhrases = PredefinedKeyPhraseExtractor.getInstance().extractKeyPhrases(article2);
 		for(String kph:keyPhrases){
+			if(kph.split(" ").length<2){
+				continue;
+			}
 			String part1 = kph.split(" ")[0];
 			String part2 = kph.split(" ")[1];
 			if(tweet.getText().contains(part1) && tweet.getText().contains(part2))
@@ -398,6 +414,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		List<Status> validTweets = new ArrayList<Status>();
 		for(Status tweet:tweets){
 			LocalDateTime timeTweet = LocalDateTime.ofInstant(tweet.getCreatedAt().toInstant(), ZoneId.of("GMT"));
+			//System.out.println(this.article.getDate());
 			LocalDateTime timeArticle = LocalDateTime.ofInstant(this.article.getDate().toInstant(), ZoneId.of("GMT"));
 			Duration duration = Duration.between(timeTweet, timeArticle);
 			if(isTweetRelatedToArticle(this.article, tweet)){
@@ -445,7 +462,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	private List<NewsArticle> getAllArticles(FileNewsSource fns) {
 		List<NewsArticle> nas = new ArrayList<NewsArticle>();
 		Iterator<NewsArticle> f = fns.iterator();
-		while(fns.iterator().hasNext()){
+		while(f.hasNext()){
 			nas.add(f.next());
 		}
 		return nas;

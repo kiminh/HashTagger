@@ -86,7 +86,11 @@ public class SimpleHashtagFinder implements HashtagFinder {
 	 */
 	@Override
 	public Status[] getStatusWithWord(String word) {
+		try{
 		return this.invertedIndex.get(word).toArray(new Status[0]);
+		}catch(NullPointerException e){
+			return null;
+		}
 	}
 
 	/*
