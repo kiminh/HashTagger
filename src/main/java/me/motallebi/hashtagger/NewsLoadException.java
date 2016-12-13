@@ -8,9 +8,21 @@ package me.motallebi.hashtagger;
  *
  */
 public class NewsLoadException extends Exception {
+	
+	public NewsLoadException() {
+		super();
+	}
+	
+	public NewsLoadException(String message){
+		super(message);
+	}
+	
+	public NewsLoadException(Throwable cause){
+		super(cause);
+	}
 
-	public NewsLoadException(String string, Exception e) {
-		super(string, e);
+	public NewsLoadException(String message, Throwable cause) {
+		super(message, cause);
 	}
 
 	/**

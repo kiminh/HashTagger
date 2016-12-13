@@ -105,6 +105,36 @@ public class MTweet implements Status {
 			return wrapped.getText().toLowerCase();
 		}
 
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+					+ ((wrapped == null) ? 0 : wrapped.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof MHashtag)) {
+				return false;
+			}
+			MHashtag other = (MHashtag) obj;
+			if (wrapped == null) {
+				if (other.wrapped != null) {
+					return false;
+				}
+			} else if (!wrapped.equals(other.wrapped)) {
+				return false;
+			}
+			return true;
+		}
+		
+		@Override
+		public String toString() {
+			return this.getText();
+		}
+
 	}
 
 	static class MUser implements User {
@@ -147,10 +177,17 @@ public class MTweet implements Status {
 
 		@Override
 		public int compareTo(User o) {
-			if (this == o)
-				return 0;
-			else
-				return -1;
+			if (o instanceof MUser) {
+				if (this == o || this.equals(o))
+					return 0;
+			} else if (o != null)
+				return o.compareTo(this);
+			return -1;
+		}
+		
+		@Override
+		public String toString() {
+			return String.valueOf(this.getId());
 		}
 
 		@Override
