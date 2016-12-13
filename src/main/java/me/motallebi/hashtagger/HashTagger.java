@@ -6,12 +6,14 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import me.motallebi.hashtagger.MTweet.MHashtag;
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
 
@@ -96,7 +98,7 @@ public class HashTagger {
 		//3. iterate over news articles
 		while(itNA.hasNext()){
 			NewsArticle na = itNA.next();
-			System.out.println("Start of newsgetStatusWithWord article: " + na.getId());
+			System.out.println("Start of news article: " + na.getId());
 			try{
 				//System.out.println(na.getDate());
 				//System.out.println("--- Date is working");
@@ -116,10 +118,12 @@ public class HashTagger {
 			for(int i=0;i<hashtags1.size()-1;i+=2){
 				keyphrasesFromHashtags.add(hashtags1.get(i).getText() + " " + hashtags1.get(i+1).getText());
 			}
-			List<HashtagEntity> hashtags2 = findHashtagsFromKeyphrases(hashtagFinder, keyphrasesFromHashtags,2);
+			//List<HashtagEntity> hashtags2 = findHashtagsFromKeyphrases(hashtagFinder, keyphrasesFromHashtags,2);
 			//3.2.3 find hashtags of hashtag-keywor combination
-			List<HashtagEntity> hashtags = findHashtagsFromCombination2(hashtagFinder, hashtags1,keyPhrases);
-			
+			List<MHashtag> hashtags3 = findHashtagsFromCombination2(hashtagFinder, hashtags1,keyPhrases);
+			HashSet<MHashtag> set = new HashSet<MTweet.MHashtag>(hashtags3);
+			set.removeAll(hashtags1);
+			List<HashtagEntity> hashtags = new ArrayList<HashtagEntity>(set);
 			// printing different approaches. first one is the default, second is hashtag in hashtag, third is hashtag+keyword together
 			//	        System.out.println("Hashtags for news " + na.getTitle() + "\nare: ");
 			for(HashtagEntity he: hashtags1){
@@ -127,11 +131,11 @@ public class HashTagger {
 			}
 			if(hashtags1.size()>0)
 				System.out.println();
-			for(HashtagEntity he: hashtags2){
-				System.out.print(he.getText() + " ");
-			}
-			if(hashtags2.size()>0)
-				System.out.println();
+			//for(HashtagEntity he: hashtags2){
+			//	System.out.print(he.getText() + " ");
+			//}
+			//if(hashtags2.size()>0)
+			//	System.out.println();
 			for(HashtagEntity he: hashtags){
 				System.out.print(he.getText() + " ");
 			}
@@ -196,7 +200,7 @@ public class HashTagger {
 		return new ArrayList<HashtagEntity>(s);
 	}
 	
-	private static List<HashtagEntity> findHashtagsFromCombination2(
+	private static List<MHashtag> findHashtagsFromCombination2(
 			HashtagFinder hashtagFinder, List<HashtagEntity> hashtags1,
 			List<String> keyPhrases) {
 		HashSet<String> keywords = new HashSet<String>();
@@ -207,7 +211,7 @@ public class HashTagger {
 			keywords.add(str.split(" ")[1]);
 		}
 		//List<HashtagEntity> results = new ArrayList<HashtagEntity>();
-		HashSet<HashtagEntity> s = new HashSet<>();
+		HashSet<MHashtag> s = new HashSet<MHashtag>();
 		for(HashtagEntity h:hashtags1){
 			Status[] tweets = hashtagFinder.getStatusWithHT(h.getText());
 			for(Status tweet:tweets){
@@ -220,12 +224,13 @@ public class HashTagger {
 					}
 				}
 				if(flag >=3){
-					s.addAll(Arrays.asList(tweet.getHashtagEntities()));
+					s.addAll((Collection<? extends MHashtag>) Arrays.asList(tweet.getHashtagEntities()));
 					//results.addAll(Arrays.asList(tweet.getHashtagEntities()));
 				}
 			}
 		}
-		return new ArrayList<HashtagEntity>(s);
+		
+		return new ArrayList<MHashtag>(s);
 	}
 
 	/**
