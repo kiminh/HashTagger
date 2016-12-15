@@ -9,8 +9,12 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
@@ -59,5 +63,36 @@ public class Util {
 		Set<String> wordSet = new HashSet<>(Arrays.asList(words));
 		// wordSet.removeAll(FREQUENT_WORD_SET);
 		return wordSet.toArray(new String[wordSet.size()]);
+	}
+
+	/**
+	 * Return a map indicating in how many of the total strings each word of
+	 * string appeared
+	 * 
+	 * @param list
+	 *            : inputStrings
+	 * @return map: keyword -> count
+	 */
+	public static Map<String, Integer> computeWordOccurences(
+			List<String> inputStrings, boolean caseSensitive) {
+		Map<String, Integer> returnMap = new HashMap<>();
+		Pattern htmlTag = Pattern.compile("<.*?>");
+		Pattern separator = Pattern.compile("\\W");
+		for (String input : inputStrings) {
+			input = htmlTag.matcher(input).replaceAll("");
+			String[] words = separator.split(input);
+			Set<String> uniqueWords = new HashSet<>(words.length / 2);
+			uniqueWords.addAll(Arrays.asList(words));
+			for (String word : uniqueWords) {
+				if(word.isEmpty())
+					continue;
+				if (!caseSensitive)
+					word = word.toLowerCase();
+				int count = returnMap.getOrDefault(word, 0);
+				returnMap.put(word, ++count);
+			}
+			uniqueWords.clear();
+		}
+		return returnMap;
 	}
 }

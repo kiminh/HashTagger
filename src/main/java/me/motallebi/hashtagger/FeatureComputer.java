@@ -20,23 +20,24 @@ public interface FeatureComputer {
 	 * the past time window t
 	 */
 
-	void HE(NewsArticle a, HashtagEntity h); // HashtagEntity in hEadLine
+	float HE(NewsArticle a, HashtagEntity h); // HashtagEntity in hEadLine
 
-	void LS(NewsArticle article, HashtagEntity h, DurationEnum lambda2,
+	float LS(NewsArticle article, HashtagEntity h, DurationEnum lambda2,
 			List<NewsArticle> articles);
 
-	void LF(NewsArticle a, HashtagEntity h, DurationEnum LAMBDA);
+	float LF(NewsArticle a, HashtagEntity h, DurationEnum LAMBDA);
 
-	void GS(NewsArticle article, HashtagEntity h, DurationEnum GAMMA);
+	float GS(NewsArticle article, HashtagEntity h, DurationEnum GAMMA);
 
-	void GF(HashtagEntity h, DurationEnum GAMMA);
+	float GF(NewsArticle article, HashtagEntity h, DurationEnum gamma);
 
-	void TR(NewsArticle a, HashtagEntity h, DurationEnum LAMBDA);
+	float TR(NewsArticle a, HashtagEntity h, DurationEnum LAMBDA);
 
-	void UC(NewsArticle article, HashtagEntity h, DurationEnum LAMBDA);
+	float UC(NewsArticle article, HashtagEntity h, DurationEnum LAMBDA);
 
-	void UR(NewsArticle article, HashtagEntity h, DurationEnum LAMBDA);
+	float UR(NewsArticle article, HashtagEntity h, DurationEnum LAMBDA);
 
-	void EG(Float TR, NewsArticle article, HashtagEntity h, DurationEnum lambda3);
+	float EG(NewsArticle article, HashtagEntity h, DurationEnum lambda3,
+			Float TR);
 
 }
