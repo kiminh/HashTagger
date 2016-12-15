@@ -205,13 +205,18 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		// create list of bag-of-words that contains terms of article and all
 		// tweets
 		Set<String> bagOfWords = createBagOfWords(article, tweets);
+		
+		// precompute max frequency for article bag and tweets
+		float maxFreqArticle = calcMaxFreq(article.getTitle() + " "
+				+ article.getBody());
+		float maxFreqHashtag = calcMaxFreq(tweetsText.toString());
 
 		// compute vectors of tf-idf for each term
 		for (String str : bagOfWords) {
 			articleVector.add(termFrequency(str, article.getTitle() + " "
-					+ article.getBody())
+					+ article.getBody(), maxFreqArticle)
 					* inverseDocumentFrequency(str));
-			hashtagsVector.add(termFrequency(str, tweetsText.toString()));
+			hashtagsVector.add(termFrequency(str, tweetsText.toString(), maxFreqHashtag));
 		}
 		try {
 			return cosineSimilarity(articleVector, hashtagsVector);
@@ -416,6 +421,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		return featureArray;
 	}
 
+	@SuppressWarnings("unused")
 	private float termFrequency(String word, String text) {
 		float maxFreq = calcMaxFreq(text);
 		if (maxFreq == 0.0f)
