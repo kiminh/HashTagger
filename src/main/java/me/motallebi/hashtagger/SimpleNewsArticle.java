@@ -74,7 +74,7 @@ public class SimpleNewsArticle implements NewsArticle {
 	public void setTitle(String newsTitle) {
 		// Check encoding etc. when setting
 		if (newsTitle != null)
-			this.newsTitle = tagPattern.matcher(newsTitle).replaceAll("");
+			this.newsTitle = tagPattern.matcher(newsTitle).replaceAll(" ");
 	}
 
 	/*

@@ -45,6 +45,8 @@ public class FileNewsSource implements NewsSource {
 	private List<NewsArticle> newsList = new ArrayList<>(this.numToLoad);
 	private volatile boolean loaded = false;
 
+	private static final boolean CASE_SENSITIVE = false; // Static? Prop file?
+
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(
 			Constants.NEWS_DATETIME_FORMAT);
 
@@ -157,7 +159,8 @@ public class FileNewsSource implements NewsSource {
 		}
 		if (!matcher.matches())
 			return null;
-		NewsArticle news = new SimpleNewsArticle();
+		NewsArticle news = CASE_SENSITIVE ? new SimpleNewsArticle()
+				: new LowercaseNewsArticle();
 		try {
 			news.setTitle(matcher.group(Constants.NEWS_TITLE_GROUP));
 			news.setBody(matcher.group(Constants.NEWS_BODY_GROUP));
@@ -360,7 +363,9 @@ public class FileNewsSource implements NewsSource {
 
 	public static void main(String[] args) {
 
-		FileNewsSource fnl = new FileNewsSource("/home/hossein/Downloads/CMPUT692/twitter-data/news-test/", false);
+		FileNewsSource fnl = new FileNewsSource(
+				"/home/hossein/Downloads/CMPUT692/twitter-data/news-test/",
+				false);
 
 		new Thread() {
 			public void run() {

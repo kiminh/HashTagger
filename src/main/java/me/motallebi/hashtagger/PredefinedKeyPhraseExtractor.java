@@ -25,7 +25,7 @@ public class PredefinedKeyPhraseExtractor extends AbstractKeyPhraseExtractor {
 	}
 
 	protected Pattern pattern = Pattern
-			.compile("<strong>Stream Keywords: (.*?)</strong>");
+			.compile("<strong>(S|s)tream (K|k)eywords: (.*?)</strong>");
 
 	/*
 	 * (non-Javadoc)
@@ -40,7 +40,7 @@ public class PredefinedKeyPhraseExtractor extends AbstractKeyPhraseExtractor {
 		Matcher matcher = pattern.matcher(newsBody);
 		if (!matcher.find())
 			return Collections.emptyList();
-		String unparsed = matcher.group(1);
+		String unparsed = matcher.group(3);
 		String[] pairs = unparsed.split(",");
 		return Arrays.asList(pairs);
 	}
