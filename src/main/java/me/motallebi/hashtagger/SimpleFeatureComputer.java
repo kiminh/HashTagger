@@ -38,7 +38,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	private static Duration lambda = Duration.ofHours(2);
 	private static Duration gamma = Duration.ofHours(6);
 	private static Duration lambda2 = Duration.ofHours(4);
-	private static final Pattern SPACE_PATTERN = Pattern.compile("\\s");
+	private static final Pattern SPACE_PATTERN = Pattern.compile("\\W+");
 	private Map<String, Integer> wordOccurences;
 	private final int corpusSize;
 	private int maxArticleSpecificTweetBagSize = 1;
@@ -358,7 +358,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	public float HE(NewsArticle a, HashtagEntity h) {// Hashtag in Headline
 		float inText = 0.0f;
 		String temp = a.getTitle() + " " + a.getBody();
-		temp = temp.replaceAll("\\s+", "");
+		temp = SPACE_PATTERN.matcher(temp).replaceAll(" ");
 		if (temp.contains(h.getText()))
 			inText = 1.0f;
 		return inText;
@@ -508,17 +508,24 @@ public class SimpleFeatureComputer implements FeatureComputer {
 
 	private float cosineSimilarity(List<Float> a, List<Float> b)
 			throws IllegalArgumentException {
-		float sum = 0.0f;
 		if (a.size() != b.size())
 			throw new IllegalArgumentException(
 					"Size of vectors in cosineSimilarity does not match");
 		int size = a.size();
 		if (size == 0)
 			return 0;
+		float sum = 0.0f;
+		float aSum = 0.0f;
+		float bSum = 0.0f;
+		float a_i, b_i;
 		for (int i = 0; i < size; i++) {
-			sum += a.get(i) * b.get(i);
+			a_i = a.get(i);
+			b_i = b.get(i);
+			sum += a_i * b_i;
+			aSum += a_i * a_i;
+			bSum += b_i * b_i;
 		}
-		return sum / (size * size);
+		return (float) (sum / Math.sqrt(aSum * bSum));
 	}
 
 	private float calcMaxFreq(String text) {

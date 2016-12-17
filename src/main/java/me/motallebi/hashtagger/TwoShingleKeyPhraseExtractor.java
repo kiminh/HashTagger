@@ -24,7 +24,7 @@ public class TwoShingleKeyPhraseExtractor extends AbstractKeyPhraseExtractor {
 		return instance;
 	}
 	
-	private static final Pattern splitPattern = Pattern.compile("\\s|:|\\.|,");
+	private static final Pattern splitPattern = Pattern.compile("\\W+");
 	private static final List<String> frequentWordSet = Arrays.asList("a",
 			"the", "i", "me", "my", "he", "she", "his", "her", "here", "there",
 			"by", "and", "its", "of", "in", "for", "on", "it", "be", "if",
