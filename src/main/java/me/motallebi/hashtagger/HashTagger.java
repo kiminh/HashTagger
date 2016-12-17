@@ -87,8 +87,6 @@ public class HashTagger {
 		}
 		FileTweetSource fts = new FileTweetSource("tweets/", date);
 		fts.loadTweets();
-		HashtagFinder hashtagFinder = new SimpleHashtagFinder(
-				fts.getTweetList());
 
 		// 2. Load News articles
 		FileNewsSource fns = new FileNewsSource("download/");
@@ -99,7 +97,10 @@ public class HashTagger {
 		fns.waitUntilLoad();
 		fts.waitUntilLoad();
 
-		SimpleFeatureComputer sfc = new SimpleFeatureComputer(fts, fns,
+		HashtagFinder hashtagFinder = new SimpleHashtagFinder(
+				fts.getTweetList());
+
+		SimpleFeatureComputer sfc = new SimpleFeatureComputer(fns,
 				hashtagFinder);
 
 		// 3. iterate over news articles
@@ -132,9 +133,8 @@ public class HashTagger {
 			List<HashtagEntity> hashtags = findHashtagsFromKeyphrases(
 					hashtagFinder, keyphrasesFromHashtags, 2);
 
-//			System.out.println(Arrays.toString(hashtags1.toArray()));
-//			System.out.println(Arrays.toString(hashtags.toArray()));
-
+			// System.out.println(Arrays.toString(hashtags1.toArray()));
+			// System.out.println(Arrays.toString(hashtags.toArray()));
 
 			sfc.prepareForArticle(na, hashtags);
 

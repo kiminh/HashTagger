@@ -31,10 +31,9 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	private static final int numberOfFeatures = 9;
 	private List<NewsArticle> articles;
 	private HashtagFinder hf;
-	private FileTweetSource fts;
+	// private FileTweetSource fts;
 	private static Integer maxTweetBagSize;
 	private static Integer minTweetBagSize;
-	private Set<String> bagOfWords;
 	private static Duration lambda = Duration.ofHours(2);
 	private static Duration gamma = Duration.ofHours(6);
 	private static Duration lambda2 = Duration.ofHours(4);
@@ -48,11 +47,10 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		LAMBDA, GAMMA, LAMBDA2
 	}
 
-	public SimpleFeatureComputer(FileTweetSource fts, FileNewsSource fns,
-			HashtagFinder hashtagFinder) {
+	public SimpleFeatureComputer(FileNewsSource fns, HashtagFinder hashtagFinder) {
 		// this.featureList = new ArrayList<Float>(numberOfFeatures);
 		// this.article = article;
-		this.fts = fts;
+		// this.fts = fts;
 		this.hf = hashtagFinder;
 		this.articles = getAllArticles(fns);
 
@@ -188,6 +186,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	@Override
 	public float LS(NewsArticle article, HashtagEntity h, DurationEnum lambda2,
 			List<NewsArticle> articles) {
+		// System.out.print("LS...");
 		List<Status> tweets = new ArrayList<Status>();
 		List<Float> articleVector = new ArrayList<Float>();
 		List<Float> hashtagsVector = new ArrayList<Float>();
@@ -205,7 +204,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		// create list of bag-of-words that contains terms of article and all
 		// tweets
 		Set<String> bagOfWords = createBagOfWords(article, tweets);
-		
+
 		// precompute max frequency for article bag and tweets
 		float maxFreqArticle = calcMaxFreq(article.getTitle() + " "
 				+ article.getBody());
@@ -216,7 +215,8 @@ public class SimpleFeatureComputer implements FeatureComputer {
 			articleVector.add(termFrequency(str, article.getTitle() + " "
 					+ article.getBody(), maxFreqArticle)
 					* inverseDocumentFrequency(str));
-			hashtagsVector.add(termFrequency(str, tweetsText.toString(), maxFreqHashtag));
+			hashtagsVector.add(termFrequency(str, tweetsText.toString(),
+					maxFreqHashtag));
 		}
 		try {
 			return cosineSimilarity(articleVector, hashtagsVector);
@@ -235,6 +235,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	 */
 	@Override
 	public float LF(NewsArticle article, HashtagEntity h, DurationEnum lambda) {
+		// System.out.print("LF...");
 		// find all tweets that contain this hashtag in this time.
 		List<Status> tweets = findArticleSpecificTweets(article, h, lambda);
 		if (maxArticleSpecificTweetBagSize == minArticleSpecificTweetBagSize) {
@@ -252,6 +253,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	 */
 	@Override
 	public float GS(NewsArticle article, HashtagEntity h, DurationEnum gamma) {
+		// System.out.print("GS...");
 		List<Float> articleVector = new ArrayList<Float>();
 		List<Float> hashtagsVector = new ArrayList<Float>();
 
@@ -299,6 +301,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	 */
 	@Override
 	public float GF(NewsArticle article, HashtagEntity h, DurationEnum gamma) {
+		// System.out.print("GF...");
 		List<Status> tweets = new ArrayList<Status>();
 		tweets = findTweets(h, article.getDate(), gamma);// fin all tweets that
 		// contain this
@@ -315,6 +318,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	 */
 	@Override
 	public float TR(NewsArticle a, HashtagEntity h, DurationEnum lambda) {
+		// System.out.print("TR...");
 		List<Status> tweetsNewer = new ArrayList<Status>();
 		List<Status> tweetsOlder = new ArrayList<Status>();
 
@@ -337,6 +341,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	@Override
 	public float EG(NewsArticle article, HashtagEntity h, DurationEnum lambda3,
 			Float TR) {// TODO
+		// System.out.print("EG...");
 		// TODO time frame is unclear for me!
 		// temporary:///////////////
 		return 1.0f;
@@ -356,6 +361,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	 */
 	@Override
 	public float HE(NewsArticle a, HashtagEntity h) {// Hashtag in Headline
+		// System.out.print("HE...");
 		float inText = 0.0f;
 		String temp = a.getTitle() + " " + a.getBody();
 		temp = SPACE_PATTERN.matcher(temp).replaceAll(" ");
@@ -372,6 +378,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	 */
 	@Override
 	public float UR(NewsArticle article, HashtagEntity h, DurationEnum lambda) {
+		// System.out.print("UR...");
 		List<Status> tweets = new ArrayList<Status>();
 		HashSet<Long> hs = new HashSet<Long>();
 		tweets = findArticleSpecificTweets(article, h, lambda);
@@ -391,6 +398,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	 */
 	@Override
 	public float UC(NewsArticle article, HashtagEntity h, DurationEnum lambda) {
+		// System.out.print("UC...");
 		List<Status> tweets = new ArrayList<Status>();
 		// HashSet<String> hs = new HashSet<String>();
 		tweets = findArticleSpecificTweets(article, h, lambda);
@@ -458,13 +466,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		return (float) count / totalCount;
 	}
 
-	private Set<String> getBagOfWords() {
-		if (this.bagOfWords != null)
-			return this.bagOfWords;
-		this.bagOfWords = createBagOfWords(this.fts.getTweetList());
-		return this.bagOfWords;
-	}
-
+	@SuppressWarnings("unused")
 	private Set<String> createBagOfWords(List<Status> tweets) {
 		Set<String> bag = new HashSet<>();
 		for (Status t : tweets) {
@@ -473,19 +475,6 @@ public class SimpleFeatureComputer implements FeatureComputer {
 					bag.add(str);
 			}
 		}
-		return bag;
-	}
-
-	@SuppressWarnings("unused")
-	private Set<String> createBagOfWords(NewsArticle article) {
-		Set<String> bag = new HashSet<String>();
-		String temp = article.getTitle() + " " + article.getBody();
-		for (String str : SPACE_PATTERN.split(temp)) {
-			if (str.length() > 1)
-				bag.add(str);
-		}
-		// Add all words from default tweets
-		bag.addAll(this.getBagOfWords());
 		return bag;
 	}
 
@@ -549,8 +538,9 @@ public class SimpleFeatureComputer implements FeatureComputer {
 			if ((parts = SPACE_PATTERN.split(kph)).length < 2) {
 				continue;
 			}
-			return tweet.getText().contains(parts[0])
-					&& tweet.getText().contains(parts[1]);
+			if (tweet.getText().contains(parts[0])
+					&& tweet.getText().contains(parts[1]))
+				return true;
 		}
 		return false;
 	}
