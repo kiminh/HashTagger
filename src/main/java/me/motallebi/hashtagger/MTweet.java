@@ -105,40 +105,70 @@ public class MTweet implements Status {
 			return wrapped.getText().toLowerCase();
 		}
 
+//<<<<<<< HEAD
 		/* (non-Javadoc)
 		 * @see java.lang.Object#hashCode()
 		 */
+//=======
+//>>>>>>> dev
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result
+//<<<<<<< HEAD
+//					+ ((wrapped == null) ? 0 : wrapped.getText().toLowerCase().hashCode());
+//			return result;
+//		}
+//
+//		/* (non-Javadoc)
+//		 * @see java.lang.Object#equals(java.lang.Object)
+//		 */
+//		@Override
+//		public boolean equals(Object obj) {
+//			if (this == obj)
+//				return true;
+//			if (obj == null)
+//				return false;
+//			if (getClass() != obj.getClass())
+//				return false;
+//			MHashtag other = (MHashtag) obj;
+//			if(this.getText().equals( other.getText()))
+//				return true;
+//			//System.out.println("iiinnnjjjaaaa" + this.getText() + "  " + other.getText());
+//			if (wrapped == null) {
+//				if (other.wrapped != null)
+//					return false;
+//			} else if (!wrapped.equals(other.wrapped))
+//				return false;
+//			return true;
+//		}
+//=======
 					+ ((wrapped == null) ? 0 : wrapped.getText().toLowerCase().hashCode());
 			return result;
 		}
 
-		/* (non-Javadoc)
-		 * @see java.lang.Object#equals(java.lang.Object)
-		 */
 		@Override
 		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
+			if (!(obj instanceof MHashtag)) {
 				return false;
-			if (getClass() != obj.getClass())
-				return false;
+			}
 			MHashtag other = (MHashtag) obj;
-			if(this.getText().equals( other.getText()))
-				return true;
-			//System.out.println("iiinnnjjjaaaa" + this.getText() + "  " + other.getText());
 			if (wrapped == null) {
-				if (other.wrapped != null)
+				if (other.wrapped != null) {
 					return false;
-			} else if (!wrapped.equals(other.wrapped))
+				}
+			} else if (!wrapped.getText().toLowerCase().equals(other.wrapped.getText().toLowerCase())) {
 				return false;
+			}
 			return true;
 		}
+		
+		@Override
+		public String toString() {
+			return this.getText();
+		}
+//>>>>>>> dev
 
 	}
 
@@ -182,10 +212,17 @@ public class MTweet implements Status {
 
 		@Override
 		public int compareTo(User o) {
-			if (this == o)
-				return 0;
-			else
-				return -1;
+			if (o instanceof MUser) {
+				if (this == o || this.equals(o))
+					return 0;
+			} else if (o != null)
+				return o.compareTo(this);
+			return -1;
+		}
+		
+		@Override
+		public String toString() {
+			return String.valueOf(this.getId());
 		}
 
 		@Override
