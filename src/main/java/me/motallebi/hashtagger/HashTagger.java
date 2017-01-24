@@ -7,8 +7,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
@@ -85,21 +87,24 @@ public class HashTagger {
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
-		FileTweetSource fts = new FileTweetSource("tweets/", date);
+		FileTweetSource fts = new FileTweetSource(
+				"tweets/", date);
+		// /media/hossein/2020202020202020/06/all-6
 		fts.loadTweets();
 
 		// 2. Load News articles
-		FileNewsSource fns = new FileNewsSource("download/");
+		FileNewsSource fns = new FileNewsSource(
+				"download/");
+		// /home/hossein/Downloads/CMPUT692/twitter-data/news-06-jul-16
 		fns.loadNews();
-		Iterator<NewsArticle> itNA = fns.iterator();// iterator containing news
-													// articles
 
 		fns.waitUntilLoad();
 		fts.waitUntilLoad();
 
+		Iterator<NewsArticle> itNA = fns.iterator();// iterator containing news
+
 		HashtagFinder hashtagFinder = new SimpleHashtagFinder(
 				fts.getTweetList());
-
 		SimpleFeatureComputer sfc = new SimpleFeatureComputer(fns,
 				hashtagFinder);
 
@@ -107,6 +112,8 @@ public class HashTagger {
 		while (itNA.hasNext()) {
 			NewsArticle na = itNA.next();
 			System.out.println("Start of news article: " + na.getId());
+			if (na.getId() == 39174)
+				continue;
 			try {
 				// System.out.println(na.getDate());
 				// System.out.println("--- Date is working");
@@ -130,8 +137,41 @@ public class HashTagger {
 				keyphrasesFromHashtags.add(hashtags1.get(i).getText() + " "
 						+ hashtags1.get(i + 1).getText());
 			}
-			List<HashtagEntity> hashtags = findHashtagsFromKeyphrases(
-					hashtagFinder, keyphrasesFromHashtags, 2);
+			// List<HashtagEntity> hashtags2 =
+			// findHashtagsFromKeyphrases(hashtagFinder,
+			// keyphrasesFromHashtags,2);
+			// 3.2.3 find hashtags of hashtag-keywor combination
+			List<HashtagEntity> hashtags3 = findHashtagsFromCombination2(
+					hashtagFinder, hashtags1, keyPhrases);
+			Set<HashtagEntity> set = new HashSet<>(hashtags3);
+			set.removeAll(hashtags1);
+			List<HashtagEntity> hashtags = new ArrayList<HashtagEntity>(set);
+			// printing different approaches. first one is the default, second
+			// is hashtag in hashtag, third is hashtag+keyword together
+			// System.out.println("Hashtags for news " + na.getTitle() +
+			// "\nare: ");
+			for (HashtagEntity he : hashtags1) {
+				System.out.print(he.getText() + " ");
+			}
+			if (hashtags1.size() > 0)
+				System.out.println();
+			// for(HashtagEntity he: hashtags2){
+			// System.out.print(he.getText() + " ");
+			// }
+			// if(hashtags2.size()>0)
+			// System.out.println();
+			for (HashtagEntity he : hashtags) {
+				System.out.print(he.getText() + " ");
+			}
+			if (hashtags.size() > 0)
+				System.out.println();
+
+			hashtags.addAll(hashtags1);
+
+			// if(true) continue;
+			// 3.3 Now, for each hashtag, compute feature vector
+			// List<HashtagEntity> hashtags = findHashtagsFromKeyphrases(
+			// hashtagFinder, keyphrasesFromHashtags, 2);
 
 			// System.out.println(Arrays.toString(hashtags1.toArray()));
 			// System.out.println(Arrays.toString(hashtags.toArray()));
@@ -169,6 +209,71 @@ public class HashTagger {
 						.println("CSVWriter was not able to write into the file!");
 			}
 		}
+	}
+
+	@SuppressWarnings("unused")
+	private static List<HashtagEntity> findHashtagsFromCombination(
+			HashtagFinder hashtagFinder, List<HashtagEntity> hashtags1,
+			List<String> keyPhrases) {
+		HashSet<String> keywords = new HashSet<String>();
+		for (String str : keyPhrases) {
+			keywords.add(str.split(" ")[0]);
+			keywords.add(str.split(" ")[1]);
+		}
+		// List<HashtagEntity> results = new ArrayList<HashtagEntity>();
+		HashSet<HashtagEntity> s = new HashSet<>();
+		for (HashtagEntity h : hashtags1) {
+			Status[] tweets = hashtagFinder.getStatusWithHT(h.getText());
+			for (Status tweet : tweets) {
+				boolean flag = false;
+				for (String str : keywords) {
+					if (tweet.getText().toLowerCase()
+							.contains(str.toLowerCase())) {
+						flag = true;
+						break;
+					}
+				}
+				if (flag == true) {
+					s.addAll(Arrays.asList(tweet.getHashtagEntities()));
+					// results.addAll(Arrays.asList(tweet.getHashtagEntities()));
+				}
+			}
+		}
+		return new ArrayList<HashtagEntity>(s);
+	}
+
+	private static List<HashtagEntity> findHashtagsFromCombination2(
+			HashtagFinder hashtagFinder, List<HashtagEntity> hashtags1,
+			List<String> keyPhrases) {
+		HashSet<String> keywords = new HashSet<String>();
+		for (String str : keyPhrases) {
+			if (str.length() < 2)
+				continue;
+			keywords.add(str.split(" ")[0]);
+			keywords.add(str.split(" ")[1]);
+		}
+		// List<HashtagEntity> results = new ArrayList<HashtagEntity>();
+		HashSet<HashtagEntity> s = new HashSet<HashtagEntity>();
+		for (HashtagEntity h : hashtags1) {
+			Status[] tweets = hashtagFinder.getStatusWithHT(h.getText());
+			for (Status tweet : tweets) {
+				int flag = 0;
+				for (String str : keywords) {
+					if (tweet.getText().toLowerCase()
+							.contains(str.toLowerCase())) {
+						flag++;
+						if (flag >= 2)
+							break;
+					}
+				}
+				if (flag >= 2) {
+					s.addAll(Arrays.asList(tweet.getHashtagEntities()));
+					// results.addAll(Arrays.asList(tweet.getHashtagEntities()));
+				}
+			}
+		}
+
+		return new ArrayList<HashtagEntity>(s);
 	}
 
 	/**

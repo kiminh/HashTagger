@@ -34,14 +34,15 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	// private FileTweetSource fts;
 	private static Integer maxTweetBagSize;
 	private static Integer minTweetBagSize;
-	private static Duration lambda = Duration.ofHours(2);
-	private static Duration gamma = Duration.ofHours(6);
-	private static Duration lambda2 = Duration.ofHours(4);
+	private static Duration lambda = Duration.ofHours(4);
+	private static Duration gamma = Duration.ofHours(24);
+	private static Duration lambda2 = Duration.ofHours(6);
 	private static final Pattern SPACE_PATTERN = Pattern.compile("\\W+");
 	private Map<String, Integer> wordOccurences;
 	private final int corpusSize;
 	private int maxArticleSpecificTweetBagSize = 1;
 	private int minArticleSpecificTweetBagSize = 1;
+	private static final int maxGlobalFollowers = 10_000_000;
 
 	public static enum DurationEnum {
 		LAMBDA, GAMMA, LAMBDA2
@@ -302,10 +303,8 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	@Override
 	public float GF(NewsArticle article, HashtagEntity h, DurationEnum gamma) {
 		// System.out.print("GF...");
-		List<Status> tweets = new ArrayList<Status>();
-		tweets = findTweets(h, article.getDate(), gamma);// fin all tweets that
-		// contain this
-		// hashtag in this time.
+		List<Status> tweets = findTweets(h, article.getDate(), gamma);
+		// find all tweets that contain this hashtag in this time.
 		return (float) (tweets.size() - minTweetBagSize)
 				/ (maxTweetBagSize - minTweetBagSize);
 	}
@@ -318,14 +317,11 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	 */
 	@Override
 	public float TR(NewsArticle a, HashtagEntity h, DurationEnum lambda) {
-		// System.out.print("TR...");
-		List<Status> tweetsNewer = new ArrayList<Status>();
-		List<Status> tweetsOlder = new ArrayList<Status>();
-
 		// find all tweets that contain this hashtag in this time.
-		tweetsNewer = findArticleSpecificTweets(a, h, lambda);
+		List<Status> tweetsNewer = findArticleSpecificTweets(a, h, lambda);
 		// find all tweets of article a that contain this hashtag in this time.
-		tweetsOlder = findArticleSpecificTweets(a, h, DurationEnum.LAMBDA2);
+		List<Status> tweetsOlder = findArticleSpecificTweets(a, h,
+				DurationEnum.LAMBDA2);
 		if (tweetsOlder.size() == tweetsNewer.size())
 			return 0.0f;
 		else
@@ -339,18 +335,13 @@ public class SimpleFeatureComputer implements FeatureComputer {
 	 * @see me.motallebi.hashtagger.FeatureComputer#EG()
 	 */
 	@Override
-	public float EG(NewsArticle article, HashtagEntity h, DurationEnum lambda3,
-			Float TR) {// TODO
-		// System.out.print("EG...");
-		// TODO time frame is unclear for me!
-		// temporary:///////////////
-		return 1.0f;
-		// /////////////////////////
-		/*
-		 * List<Status> tweets = new ArrayList<Status>(); tweets =
-		 * findArticleSpecificTweets(article, h, lambda3);
-		 * featureList.add((float) (1.0 + TR) * tweets.size());
-		 */
+	public float EG(NewsArticle article, HashtagEntity hashtag,
+			DurationEnum lambda3, Float tr) {
+		if (tr == 0.0f)
+			return 0.0f;
+		List<Status> tweetsNewer = findArticleSpecificTweets(article, hashtag,
+				lambda3);
+		return tweetsNewer.size() * (1 + tr);
 	}
 
 	/*
@@ -408,7 +399,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 			if (temp > maxFollowers)
 				maxFollowers = temp;
 		}
-		return (float) maxFollowers;
+		return (float) maxFollowers / maxGlobalFollowers;
 	}
 
 	// ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -422,7 +413,7 @@ public class SimpleFeatureComputer implements FeatureComputer {
 		featureArray[3] = GF(article, hashtag, DurationEnum.GAMMA);
 		featureArray[4] = TR(article, hashtag, DurationEnum.LAMBDA);
 		featureArray[5] = EG(article, hashtag, DurationEnum.LAMBDA,
-				featureArray[4]);// TODO
+				featureArray[4]);
 		featureArray[6] = HE(article, hashtag);
 		featureArray[7] = UR(article, hashtag, DurationEnum.LAMBDA);
 		featureArray[8] = UC(article, hashtag, DurationEnum.LAMBDA);
